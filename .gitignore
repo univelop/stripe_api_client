@@ -1,0 +1,22 @@
+# Generated files
+.dart_tool/
+.packages
+.pub/
+build/
+.tmp_generated/
+.stripe_spec_hash
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build runner
+*.g.dart
+*.freezed.dart
