@@ -1,0 +1,57 @@
+// ignore_for_file: type=lint
+import 'package:microsoft_kiota_abstractions/microsoft_kiota_abstractions.dart';
+
+/// auto generated
+class PaymentPagesCheckoutSessionCustomFieldsText
+    implements AdditionalDataHolder, Parsable {
+  ///  Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.
+  @override
+  Map<String, Object?> additionalData;
+
+  ///  The value that will pre-fill the field on the payment page.
+  String? defaultValue;
+
+  ///  The maximum character length constraint for the customer's input.
+  int? maximumLength;
+
+  ///  The minimum character length requirement for the customer's input.
+  int? minimumLength;
+
+  ///  The value entered by the customer.
+  String? value;
+
+  /// Instantiates a new [PaymentPagesCheckoutSessionCustomFieldsText] and sets the default values.
+  PaymentPagesCheckoutSessionCustomFieldsText() : additionalData = {};
+
+  /// Creates a new instance of the appropriate class based on discriminator value
+  ///  [parseNode] The parse node to use to read the discriminator value and create the object
+  static PaymentPagesCheckoutSessionCustomFieldsText
+      createFromDiscriminatorValue(ParseNode parseNode) {
+    return PaymentPagesCheckoutSessionCustomFieldsText();
+  }
+
+  /// The deserialization information for the current model
+  @override
+  Map<String, void Function(ParseNode)> getFieldDeserializers() {
+    var deserializerMap = <String, void Function(ParseNode)>{};
+    deserializerMap['default_value'] =
+        (node) => defaultValue = node.getStringValue();
+    deserializerMap['maximum_length'] =
+        (node) => maximumLength = node.getIntValue();
+    deserializerMap['minimum_length'] =
+        (node) => minimumLength = node.getIntValue();
+    deserializerMap['value'] = (node) => value = node.getStringValue();
+    return deserializerMap;
+  }
+
+  /// Serializes information the current object
+  ///  [writer] Serialization writer to use to serialize this model
+  @override
+  void serialize(SerializationWriter writer) {
+    writer.writeStringValue('default_value', defaultValue);
+    writer.writeIntValue('maximum_length', maximumLength);
+    writer.writeIntValue('minimum_length', minimumLength);
+    writer.writeStringValue('value', value);
+    writer.writeAdditionalData(additionalData);
+  }
+}

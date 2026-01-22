@@ -1,0 +1,46 @@
+// ignore_for_file: type=lint
+/// auto generated
+enum PaymentLinkPaymentMethodTypes {
+  affirm('affirm'),
+  afterpayClearpay('afterpay_clearpay'),
+  alipay('alipay'),
+  alma('alma'),
+  auBecsDebit('au_becs_debit'),
+  bacsDebit('bacs_debit'),
+  bancontact('bancontact'),
+  billie('billie'),
+  blik('blik'),
+  boleto('boleto'),
+  card('card'),
+  cashapp('cashapp'),
+  eps('eps'),
+  fpx('fpx'),
+  giropay('giropay'),
+  grabpay('grabpay'),
+  ideal('ideal'),
+  klarna('klarna'),
+  konbini('konbini'),
+  link('link'),
+  mbWay('mb_way'),
+  mobilepay('mobilepay'),
+  multibanco('multibanco'),
+  oxxo('oxxo'),
+  p24('p24'),
+  payByBank('pay_by_bank'),
+  paynow('paynow'),
+  paypal('paypal'),
+  payto('payto'),
+  pix('pix'),
+  promptpay('promptpay'),
+  satispay('satispay'),
+  sepaDebit('sepa_debit'),
+  sofort('sofort'),
+  swish('swish'),
+  twint('twint'),
+  usBankAccount('us_bank_account'),
+  wechatPay('wechat_pay'),
+  zip('zip');
+
+  const PaymentLinkPaymentMethodTypes(this.value);
+  final String value;
+}

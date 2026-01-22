@@ -1,0 +1,61 @@
+// ignore_for_file: type=lint
+import 'package:microsoft_kiota_abstractions/microsoft_kiota_abstractions.dart';
+import './refund_destination_details_card_type.dart';
+
+/// auto generated
+class RefundDestinationDetailsCard implements AdditionalDataHolder, Parsable {
+  ///  Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.
+  @override
+  Map<String, Object?> additionalData;
+
+  ///  Value of the reference number assigned to the refund.
+  String? reference;
+
+  ///  Status of the reference number on the refund. This can be `pending`, `available` or `unavailable`.
+  String? referenceStatus;
+
+  ///  Type of the reference number assigned to the refund.
+  String? referenceType;
+
+  ///  The type of refund. This can be `refund`, `reversal`, or `pending`.
+  RefundDestinationDetailsCardType? type_;
+
+  /// Instantiates a new [RefundDestinationDetailsCard] and sets the default values.
+  RefundDestinationDetailsCard() : additionalData = {};
+
+  /// Creates a new instance of the appropriate class based on discriminator value
+  ///  [parseNode] The parse node to use to read the discriminator value and create the object
+  static RefundDestinationDetailsCard createFromDiscriminatorValue(
+      ParseNode parseNode) {
+    return RefundDestinationDetailsCard();
+  }
+
+  /// The deserialization information for the current model
+  @override
+  Map<String, void Function(ParseNode)> getFieldDeserializers() {
+    var deserializerMap = <String, void Function(ParseNode)>{};
+    deserializerMap['reference'] = (node) => reference = node.getStringValue();
+    deserializerMap['reference_status'] =
+        (node) => referenceStatus = node.getStringValue();
+    deserializerMap['reference_type'] =
+        (node) => referenceType = node.getStringValue();
+    deserializerMap['type'] = (node) => type_ =
+        node.getEnumValue<RefundDestinationDetailsCardType>((stringValue) =>
+            RefundDestinationDetailsCardType.values
+                .where((enumVal) => enumVal.value == stringValue)
+                .firstOrNull);
+    return deserializerMap;
+  }
+
+  /// Serializes information the current object
+  ///  [writer] Serialization writer to use to serialize this model
+  @override
+  void serialize(SerializationWriter writer) {
+    writer.writeStringValue('reference', reference);
+    writer.writeStringValue('reference_status', referenceStatus);
+    writer.writeStringValue('reference_type', referenceType);
+    writer.writeEnumValue<RefundDestinationDetailsCardType>(
+        'type', type_, (e) => e?.value);
+    writer.writeAdditionalData(additionalData);
+  }
+}

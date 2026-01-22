@@ -1,0 +1,49 @@
+// ignore_for_file: type=lint
+import 'package:microsoft_kiota_abstractions/microsoft_kiota_abstractions.dart';
+
+/// auto generated
+class AccountAnnualRevenue implements AdditionalDataHolder, Parsable {
+  ///  Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.
+  @override
+  Map<String, Object?> additionalData;
+
+  ///  A non-negative integer representing the amount in the [smallest currency unit](/currencies#zero-decimal).
+  int? amount;
+
+  ///  Three-letter [ISO currency code](https://www.iso.org/iso-4217-currency-codes.html), in lowercase. Must be a [supported currency](https://stripe.com/docs/currencies).
+  String? currency;
+
+  ///  The close-out date of the preceding fiscal year in ISO 8601 format. E.g. 2023-12-31 for the 31st of December, 2023.
+  String? fiscalYearEnd;
+
+  /// Instantiates a new [AccountAnnualRevenue] and sets the default values.
+  AccountAnnualRevenue() : additionalData = {};
+
+  /// Creates a new instance of the appropriate class based on discriminator value
+  ///  [parseNode] The parse node to use to read the discriminator value and create the object
+  static AccountAnnualRevenue createFromDiscriminatorValue(
+      ParseNode parseNode) {
+    return AccountAnnualRevenue();
+  }
+
+  /// The deserialization information for the current model
+  @override
+  Map<String, void Function(ParseNode)> getFieldDeserializers() {
+    var deserializerMap = <String, void Function(ParseNode)>{};
+    deserializerMap['amount'] = (node) => amount = node.getIntValue();
+    deserializerMap['currency'] = (node) => currency = node.getStringValue();
+    deserializerMap['fiscal_year_end'] =
+        (node) => fiscalYearEnd = node.getStringValue();
+    return deserializerMap;
+  }
+
+  /// Serializes information the current object
+  ///  [writer] Serialization writer to use to serialize this model
+  @override
+  void serialize(SerializationWriter writer) {
+    writer.writeIntValue('amount', amount);
+    writer.writeStringValue('currency', currency);
+    writer.writeStringValue('fiscal_year_end', fiscalYearEnd);
+    writer.writeAdditionalData(additionalData);
+  }
+}

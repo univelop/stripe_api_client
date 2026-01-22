@@ -1,0 +1,52 @@
+// ignore_for_file: type=lint
+/// auto generated
+///  Transaction type: `adjustment`, `advance`, `advance_funding`, `anticipation_repayment`, `application_fee`, `application_fee_refund`, `charge`, `climate_order_purchase`, `climate_order_refund`, `connect_collection_transfer`, `contribution`, `issuing_authorization_hold`, `issuing_authorization_release`, `issuing_dispute`, `issuing_transaction`, `obligation_outbound`, `obligation_reversal_inbound`, `payment`, `payment_failure_refund`, `payment_network_reserve_hold`, `payment_network_reserve_release`, `payment_refund`, `payment_reversal`, `payment_unreconciled`, `payout`, `payout_cancel`, `payout_failure`, `payout_minimum_balance_hold`, `payout_minimum_balance_release`, `refund`, `refund_failure`, `reserve_transaction`, `reserved_funds`, `stripe_fee`, `stripe_fx_fee`, `stripe_balance_payment_debit`, `stripe_balance_payment_debit_reversal`, `tax_fee`, `topup`, `topup_reversal`, `transfer`, `transfer_cancel`, `transfer_failure`, or `transfer_refund`. Learn more about [balance transaction types and what they represent](https://stripe.com/docs/reports/balance-transaction-types). To classify transactions for accounting purposes, consider `reporting_category` instead.
+enum BalanceTransactionType {
+  adjustment('adjustment'),
+  advance('advance'),
+  advanceFunding('advance_funding'),
+  anticipationRepayment('anticipation_repayment'),
+  applicationFee('application_fee'),
+  applicationFeeRefund('application_fee_refund'),
+  charge('charge'),
+  climateOrderPurchase('climate_order_purchase'),
+  climateOrderRefund('climate_order_refund'),
+  connectCollectionTransfer('connect_collection_transfer'),
+  contribution('contribution'),
+  issuingAuthorizationHold('issuing_authorization_hold'),
+  issuingAuthorizationRelease('issuing_authorization_release'),
+  issuingDispute('issuing_dispute'),
+  issuingTransaction('issuing_transaction'),
+  obligationOutbound('obligation_outbound'),
+  obligationReversalInbound('obligation_reversal_inbound'),
+  payment('payment'),
+  paymentFailureRefund('payment_failure_refund'),
+  paymentNetworkReserveHold('payment_network_reserve_hold'),
+  paymentNetworkReserveRelease('payment_network_reserve_release'),
+  paymentRefund('payment_refund'),
+  paymentReversal('payment_reversal'),
+  paymentUnreconciled('payment_unreconciled'),
+  payout('payout'),
+  payoutCancel('payout_cancel'),
+  payoutFailure('payout_failure'),
+  payoutMinimumBalanceHold('payout_minimum_balance_hold'),
+  payoutMinimumBalanceRelease('payout_minimum_balance_release'),
+  refund('refund'),
+  refundFailure('refund_failure'),
+  reserveTransaction('reserve_transaction'),
+  reservedFunds('reserved_funds'),
+  stripeBalancePaymentDebit('stripe_balance_payment_debit'),
+  stripeBalancePaymentDebitReversal('stripe_balance_payment_debit_reversal'),
+  stripeFee('stripe_fee'),
+  stripeFxFee('stripe_fx_fee'),
+  taxFee('tax_fee'),
+  topup('topup'),
+  topupReversal('topup_reversal'),
+  transfer('transfer'),
+  transferCancel('transfer_cancel'),
+  transferFailure('transfer_failure'),
+  transferRefund('transfer_refund');
+
+  const BalanceTransactionType(this.value);
+  final String value;
+}

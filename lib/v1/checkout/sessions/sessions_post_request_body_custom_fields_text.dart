@@ -1,0 +1,52 @@
+// ignore_for_file: type=lint
+import 'package:microsoft_kiota_abstractions/microsoft_kiota_abstractions.dart';
+
+/// auto generated
+class SessionsPostRequestBodyCustomFieldsText
+    implements AdditionalDataHolder, Parsable {
+  ///  Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.
+  @override
+  Map<String, Object?> additionalData;
+
+  ///  The default_value property
+  String? defaultValue;
+
+  ///  The maximum_length property
+  int? maximumLength;
+
+  ///  The minimum_length property
+  int? minimumLength;
+
+  /// Instantiates a new [SessionsPostRequestBodyCustomFieldsText] and sets the default values.
+  SessionsPostRequestBodyCustomFieldsText() : additionalData = {};
+
+  /// Creates a new instance of the appropriate class based on discriminator value
+  ///  [parseNode] The parse node to use to read the discriminator value and create the object
+  static SessionsPostRequestBodyCustomFieldsText createFromDiscriminatorValue(
+      ParseNode parseNode) {
+    return SessionsPostRequestBodyCustomFieldsText();
+  }
+
+  /// The deserialization information for the current model
+  @override
+  Map<String, void Function(ParseNode)> getFieldDeserializers() {
+    var deserializerMap = <String, void Function(ParseNode)>{};
+    deserializerMap['default_value'] =
+        (node) => defaultValue = node.getStringValue();
+    deserializerMap['maximum_length'] =
+        (node) => maximumLength = node.getIntValue();
+    deserializerMap['minimum_length'] =
+        (node) => minimumLength = node.getIntValue();
+    return deserializerMap;
+  }
+
+  /// Serializes information the current object
+  ///  [writer] Serialization writer to use to serialize this model
+  @override
+  void serialize(SerializationWriter writer) {
+    writer.writeStringValue('default_value', defaultValue);
+    writer.writeIntValue('maximum_length', maximumLength);
+    writer.writeIntValue('minimum_length', minimumLength);
+    writer.writeAdditionalData(additionalData);
+  }
+}

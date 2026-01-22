@@ -1,0 +1,48 @@
+// ignore_for_file: type=lint
+import 'package:microsoft_kiota_abstractions/microsoft_kiota_abstractions.dart';
+import './with_configuration_post_request_body_nz_bank_account_display_preference.dart';
+
+/// auto generated
+/// Stripe users in New Zealand can accept Bulk Electronic Clearing System (BECS) direct debit payments from customers with a New Zeland bank account. Check this [page](https://docs.stripe.com/payments/nz-bank-account) for more details.
+class WithConfigurationPostRequestBodyNzBankAccount
+    implements AdditionalDataHolder, Parsable {
+  ///  Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.
+  @override
+  Map<String, Object?> additionalData;
+
+  ///  The display_preference property
+  WithConfigurationPostRequestBodyNzBankAccountDisplayPreference?
+      displayPreference;
+
+  /// Instantiates a new [WithConfigurationPostRequestBodyNzBankAccount] and sets the default values.
+  WithConfigurationPostRequestBodyNzBankAccount() : additionalData = {};
+
+  /// Creates a new instance of the appropriate class based on discriminator value
+  ///  [parseNode] The parse node to use to read the discriminator value and create the object
+  static WithConfigurationPostRequestBodyNzBankAccount
+      createFromDiscriminatorValue(ParseNode parseNode) {
+    return WithConfigurationPostRequestBodyNzBankAccount();
+  }
+
+  /// The deserialization information for the current model
+  @override
+  Map<String, void Function(ParseNode)> getFieldDeserializers() {
+    var deserializerMap = <String, void Function(ParseNode)>{};
+    deserializerMap['display_preference'] = (node) => displayPreference =
+        node.getObjectValue<
+                WithConfigurationPostRequestBodyNzBankAccountDisplayPreference>(
+            WithConfigurationPostRequestBodyNzBankAccountDisplayPreference
+                .createFromDiscriminatorValue);
+    return deserializerMap;
+  }
+
+  /// Serializes information the current object
+  ///  [writer] Serialization writer to use to serialize this model
+  @override
+  void serialize(SerializationWriter writer) {
+    writer.writeObjectValue<
+            WithConfigurationPostRequestBodyNzBankAccountDisplayPreference>(
+        'display_preference', displayPreference);
+    writer.writeAdditionalData(additionalData);
+  }
+}

@@ -1,0 +1,52 @@
+// ignore_for_file: type=lint
+import 'package:microsoft_kiota_abstractions/microsoft_kiota_abstractions.dart';
+import './line_items_discount_amount.dart';
+import './line_items_tax_amount.dart';
+
+/// auto generated
+class PaymentPagesCheckoutSessionTotalDetailsResourceBreakdown
+    implements AdditionalDataHolder, Parsable {
+  ///  Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.
+  @override
+  Map<String, Object?> additionalData;
+
+  ///  The aggregated discounts.
+  Iterable<LineItemsDiscountAmount>? discounts;
+
+  ///  The aggregated tax amounts by rate.
+  Iterable<LineItemsTaxAmount>? taxes;
+
+  /// Instantiates a new [PaymentPagesCheckoutSessionTotalDetailsResourceBreakdown] and sets the default values.
+  PaymentPagesCheckoutSessionTotalDetailsResourceBreakdown()
+      : additionalData = {};
+
+  /// Creates a new instance of the appropriate class based on discriminator value
+  ///  [parseNode] The parse node to use to read the discriminator value and create the object
+  static PaymentPagesCheckoutSessionTotalDetailsResourceBreakdown
+      createFromDiscriminatorValue(ParseNode parseNode) {
+    return PaymentPagesCheckoutSessionTotalDetailsResourceBreakdown();
+  }
+
+  /// The deserialization information for the current model
+  @override
+  Map<String, void Function(ParseNode)> getFieldDeserializers() {
+    var deserializerMap = <String, void Function(ParseNode)>{};
+    deserializerMap['discounts'] = (node) => discounts =
+        node.getCollectionOfObjectValues<LineItemsDiscountAmount>(
+            LineItemsDiscountAmount.createFromDiscriminatorValue);
+    deserializerMap['taxes'] = (node) => taxes =
+        node.getCollectionOfObjectValues<LineItemsTaxAmount>(
+            LineItemsTaxAmount.createFromDiscriminatorValue);
+    return deserializerMap;
+  }
+
+  /// Serializes information the current object
+  ///  [writer] Serialization writer to use to serialize this model
+  @override
+  void serialize(SerializationWriter writer) {
+    writer.writeCollectionOfObjectValues<LineItemsDiscountAmount>(
+        'discounts', discounts);
+    writer.writeCollectionOfObjectValues<LineItemsTaxAmount>('taxes', taxes);
+    writer.writeAdditionalData(additionalData);
+  }
+}

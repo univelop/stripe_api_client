@@ -1,0 +1,48 @@
+// ignore_for_file: type=lint
+/// auto generated
+enum SubscriptionsResourcePaymentSettingsPaymentMethodTypes {
+  achCreditTransfer('ach_credit_transfer'),
+  achDebit('ach_debit'),
+  acssDebit('acss_debit'),
+  affirm('affirm'),
+  amazonPay('amazon_pay'),
+  auBecsDebit('au_becs_debit'),
+  bacsDebit('bacs_debit'),
+  bancontact('bancontact'),
+  boleto('boleto'),
+  card('card'),
+  cashapp('cashapp'),
+  crypto('crypto'),
+  custom('custom'),
+  customerBalance('customer_balance'),
+  eps('eps'),
+  fpx('fpx'),
+  giropay('giropay'),
+  grabpay('grabpay'),
+  ideal('ideal'),
+  jpCreditTransfer('jp_credit_transfer'),
+  kakaoPay('kakao_pay'),
+  klarna('klarna'),
+  konbini('konbini'),
+  krCard('kr_card'),
+  link('link'),
+  multibanco('multibanco'),
+  naverPay('naver_pay'),
+  nzBankAccount('nz_bank_account'),
+  p24('p24'),
+  payco('payco'),
+  paynow('paynow'),
+  paypal('paypal'),
+  payto('payto'),
+  promptpay('promptpay'),
+  revolutPay('revolut_pay'),
+  sepaCreditTransfer('sepa_credit_transfer'),
+  sepaDebit('sepa_debit'),
+  sofort('sofort'),
+  swish('swish'),
+  usBankAccount('us_bank_account'),
+  wechatPay('wechat_pay');
+
+  const SubscriptionsResourcePaymentSettingsPaymentMethodTypes(this.value);
+  final String value;
+}

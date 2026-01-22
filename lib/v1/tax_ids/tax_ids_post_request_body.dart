@@ -1,0 +1,55 @@
+// ignore_for_file: type=lint
+import 'package:microsoft_kiota_abstractions/microsoft_kiota_abstractions.dart';
+import './tax_ids_post_request_body_owner.dart';
+import './tax_ids_post_request_body_type.dart';
+
+/// auto generated
+class TaxIdsPostRequestBody implements Parsable {
+  ///  Specifies which fields in the response should be expanded.
+  Iterable<String>? expand;
+
+  ///  The account or customer the tax ID belongs to. Defaults to `owner[type]=self`.
+  TaxIdsPostRequestBodyOwner? owner;
+
+  ///  Type of the tax ID, one of `ad_nrt`, `ae_trn`, `al_tin`, `am_tin`, `ao_tin`, `ar_cuit`, `au_abn`, `au_arn`, `aw_tin`, `az_tin`, `ba_tin`, `bb_tin`, `bd_bin`, `bf_ifu`, `bg_uic`, `bh_vat`, `bj_ifu`, `bo_tin`, `br_cnpj`, `br_cpf`, `bs_tin`, `by_tin`, `ca_bn`, `ca_gst_hst`, `ca_pst_bc`, `ca_pst_mb`, `ca_pst_sk`, `ca_qst`, `cd_nif`, `ch_uid`, `ch_vat`, `cl_tin`, `cm_niu`, `cn_tin`, `co_nit`, `cr_tin`, `cv_nif`, `de_stn`, `do_rcn`, `ec_ruc`, `eg_tin`, `es_cif`, `et_tin`, `eu_oss_vat`, `eu_vat`, `gb_vat`, `ge_vat`, `gn_nif`, `hk_br`, `hr_oib`, `hu_tin`, `id_npwp`, `il_vat`, `in_gst`, `is_vat`, `jp_cn`, `jp_rn`, `jp_trn`, `ke_pin`, `kg_tin`, `kh_tin`, `kr_brn`, `kz_bin`, `la_tin`, `li_uid`, `li_vat`, `ma_vat`, `md_vat`, `me_pib`, `mk_vat`, `mr_nif`, `mx_rfc`, `my_frp`, `my_itn`, `my_sst`, `ng_tin`, `no_vat`, `no_voec`, `np_pan`, `nz_gst`, `om_vat`, `pe_ruc`, `ph_tin`, `ro_tin`, `rs_pib`, `ru_inn`, `ru_kpp`, `sa_vat`, `sg_gst`, `sg_uen`, `si_tin`, `sn_ninea`, `sr_fin`, `sv_nit`, `th_vat`, `tj_tin`, `tr_tin`, `tw_vat`, `tz_vat`, `ua_vat`, `ug_tin`, `us_ein`, `uy_ruc`, `uz_tin`, `uz_vat`, `ve_rif`, `vn_tin`, `za_vat`, `zm_tin`, or `zw_tin`
+  TaxIdsPostRequestBodyType? type_;
+
+  ///  Value of the tax ID.
+  String? value;
+
+  /// Creates a new instance of the appropriate class based on discriminator value
+  ///  [parseNode] The parse node to use to read the discriminator value and create the object
+  static TaxIdsPostRequestBody createFromDiscriminatorValue(
+      ParseNode parseNode) {
+    return TaxIdsPostRequestBody();
+  }
+
+  /// The deserialization information for the current model
+  @override
+  Map<String, void Function(ParseNode)> getFieldDeserializers() {
+    var deserializerMap = <String, void Function(ParseNode)>{};
+    deserializerMap['expand'] =
+        (node) => expand = node.getCollectionOfPrimitiveValues<String>();
+    deserializerMap['owner'] = (node) => owner =
+        node.getObjectValue<TaxIdsPostRequestBodyOwner>(
+            TaxIdsPostRequestBodyOwner.createFromDiscriminatorValue);
+    deserializerMap['type'] = (node) => type_ =
+        node.getEnumValue<TaxIdsPostRequestBodyType>((stringValue) =>
+            TaxIdsPostRequestBodyType.values
+                .where((enumVal) => enumVal.value == stringValue)
+                .firstOrNull);
+    deserializerMap['value'] = (node) => value = node.getStringValue();
+    return deserializerMap;
+  }
+
+  /// Serializes information the current object
+  ///  [writer] Serialization writer to use to serialize this model
+  @override
+  void serialize(SerializationWriter writer) {
+    writer.writeCollectionOfPrimitiveValues<String?>('expand', expand);
+    writer.writeObjectValue<TaxIdsPostRequestBodyOwner>('owner', owner);
+    writer.writeEnumValue<TaxIdsPostRequestBodyType>(
+        'type', type_, (e) => e?.value);
+    writer.writeStringValue('value', value);
+  }
+}

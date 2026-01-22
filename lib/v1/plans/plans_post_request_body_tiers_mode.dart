@@ -1,0 +1,10 @@
+// ignore_for_file: type=lint
+/// auto generated
+///  Defines if the tiering price should be `graduated` or `volume` based. In `volume`-based tiering, the maximum quantity within a period determines the per unit price, in `graduated` tiering pricing can successively change as the quantity grows.
+enum PlansPostRequestBodyTiersMode {
+  graduated('graduated'),
+  volume('volume');
+
+  const PlansPostRequestBodyTiersMode(this.value);
+  final String value;
+}

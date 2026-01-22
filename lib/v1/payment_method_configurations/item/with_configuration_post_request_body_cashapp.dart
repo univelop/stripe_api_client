@@ -1,0 +1,47 @@
+// ignore_for_file: type=lint
+import 'package:microsoft_kiota_abstractions/microsoft_kiota_abstractions.dart';
+import './with_configuration_post_request_body_cashapp_display_preference.dart';
+
+/// auto generated
+/// Cash App is a popular consumer app in the US that allows customers to bank, invest, send, and receive money using their digital wallet. Check this [page](https://docs.stripe.com/payments/cash-app-pay) for more details.
+class WithConfigurationPostRequestBodyCashapp
+    implements AdditionalDataHolder, Parsable {
+  ///  Stores additional data not described in the OpenAPI description found when deserializing. Can be used for serialization as well.
+  @override
+  Map<String, Object?> additionalData;
+
+  ///  The display_preference property
+  WithConfigurationPostRequestBodyCashappDisplayPreference? displayPreference;
+
+  /// Instantiates a new [WithConfigurationPostRequestBodyCashapp] and sets the default values.
+  WithConfigurationPostRequestBodyCashapp() : additionalData = {};
+
+  /// Creates a new instance of the appropriate class based on discriminator value
+  ///  [parseNode] The parse node to use to read the discriminator value and create the object
+  static WithConfigurationPostRequestBodyCashapp createFromDiscriminatorValue(
+      ParseNode parseNode) {
+    return WithConfigurationPostRequestBodyCashapp();
+  }
+
+  /// The deserialization information for the current model
+  @override
+  Map<String, void Function(ParseNode)> getFieldDeserializers() {
+    var deserializerMap = <String, void Function(ParseNode)>{};
+    deserializerMap['display_preference'] = (node) => displayPreference =
+        node.getObjectValue<
+                WithConfigurationPostRequestBodyCashappDisplayPreference>(
+            WithConfigurationPostRequestBodyCashappDisplayPreference
+                .createFromDiscriminatorValue);
+    return deserializerMap;
+  }
+
+  /// Serializes information the current object
+  ///  [writer] Serialization writer to use to serialize this model
+  @override
+  void serialize(SerializationWriter writer) {
+    writer.writeObjectValue<
+            WithConfigurationPostRequestBodyCashappDisplayPreference>(
+        'display_preference', displayPreference);
+    writer.writeAdditionalData(additionalData);
+  }
+}
