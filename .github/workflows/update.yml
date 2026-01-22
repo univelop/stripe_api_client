@@ -19,12 +19,8 @@ jobs:
 
       - name: Install kiota
         run: |
-          # Download and install kiota for Linux
-          KIOTA_VERSION="1.18.1"  # Update as needed
-          wget -q "https://github.com/microsoft/kiota/releases/download/v${KIOTA_VERSION}/kiota-linux-x64" -O /tmp/kiota
-          chmod +x /tmp/kiota
-          sudo mv /tmp/kiota /usr/local/bin/kiota
-          kiota --version
+          chmod +x .github/scripts/install-kiota.sh
+          .github/scripts/install-kiota.sh "1.18.1"
 
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@v1
@@ -34,104 +30,43 @@ jobs:
       - name: Download latest Stripe OpenAPI spec
         id: download-spec
         run: |
-          curl -L https://raw.githubusercontent.com/stripe/openapi/refs/heads/master/openapi/spec3.json -o stripe_spec.json
-          NEW_HASH=$(sha256sum stripe_spec.json | cut -d' ' -f1)
-          echo "new_hash=$NEW_HASH" >> $GITHUB_OUTPUT
-          echo "Downloaded spec with hash: $NEW_HASH"
+          chmod +x .github/scripts/download-spec.sh
+          .github/scripts/download-spec.sh
 
       - name: Check for changes
         id: check-changes
         run: |
-          # Get the hash of the last downloaded spec (if exists)
-          if [ -f .stripe_spec_hash ]; then
-            OLD_HASH=$(cat .stripe_spec_hash)
-            echo "old_hash=$OLD_HASH" >> $GITHUB_OUTPUT
-          else
-            echo "old_hash=" >> $GITHUB_OUTPUT
-          fi
-
-          NEW_HASH="${{ steps.download-spec.outputs.new_hash }}"
-          OLD_HASH="${{ steps.check-changes.outputs.old_hash }}"
-
-          if [ "$NEW_HASH" != "$OLD_HASH" ]; then
-            echo "has_changes=true" >> $GITHUB_OUTPUT
-            echo "Changes detected in Stripe OpenAPI spec"
-          else
-            echo "has_changes=false" >> $GITHUB_OUTPUT
-            echo "No changes detected"
-          fi
+          chmod +x .github/scripts/check-changes.sh
+          .github/scripts/check-changes.sh .stripe_spec_hash "${{ steps.download-spec.outputs.new_hash }}"
 
       - name: Generate code
         if: steps.check-changes.outputs.has_changes == 'true'
         run: |
-          # Make generate script executable
           chmod +x generate.sh
-
-          # Run the generation script
           ./generate.sh
-
-          # Install dependencies from updated pubspec.yaml
           dart pub get
 
-      - name: Determine version bump
+      - name: Bump version
         id: version-bump
         if: steps.check-changes.outputs.has_changes == 'true'
         run: |
+          chmod +x .github/scripts/bump-version.sh
           # For now, default to PATCH version bump
           # In the future, this could analyze the spec changes to determine
           # if it's a MAJOR, MINOR, or PATCH change
-          BUMP_TYPE="patch"
-          echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
-          echo "Version bump type: $BUMP_TYPE"
-
-      - name: Update version in pubspec.yaml
-        if: steps.check-changes.outputs.has_changes == 'true'
-        run: |
-          BUMP_TYPE="${{ steps.version-bump.outputs.bump_type }}"
-
-          # Read current version
-          CURRENT_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //')
-          echo "Current version: $CURRENT_VERSION"
-
-          # Parse version components
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
-
-          # Bump version
-          case "$BUMP_TYPE" in
-            major)
-              MAJOR=$((MAJOR + 1))
-              MINOR=0
-              PATCH=0
-              ;;
-            minor)
-              MINOR=$((MINOR + 1))
-              PATCH=0
-              ;;
-            patch)
-              PATCH=$((PATCH + 1))
-              ;;
-          esac
-
-          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
-          echo "New version: $NEW_VERSION"
-          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-
-          # Update pubspec.yaml
-          sed -i "s/^version: .*/version: $NEW_VERSION/" pubspec.yaml
+          .github/scripts/bump-version.sh "patch"
 
       - name: Update CHANGELOG.md
         if: steps.check-changes.outputs.has_changes == 'true'
         run: |
-          NEW_VERSION="${{ steps.version-bump.outputs.new_version }}"
-          DATE=$(date +%Y-%m-%d)
-
-          # Add new entry to CHANGELOG
-          sed -i "2a\\\n## [$NEW_VERSION] - $DATE\n\n### Changed\n- Updated Stripe OpenAPI specification to latest version\n" CHANGELOG.md
+          chmod +x .github/scripts/update-changelog.sh
+          .github/scripts/update-changelog.sh "${{ steps.version-bump.outputs.new_version }}"
 
       - name: Save spec hash
         if: steps.check-changes.outputs.has_changes == 'true'
         run: |
-          echo "${{ steps.download-spec.outputs.new_hash }}" > .stripe_spec_hash
+          chmod +x .github/scripts/save-spec-hash.sh
+          .github/scripts/save-spec-hash.sh "${{ steps.download-spec.outputs.new_hash }}"
 
       - name: Configure Git
         if: steps.check-changes.outputs.has_changes == 'true'
