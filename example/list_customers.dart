@@ -1,23 +1,10 @@
+// ignore_for_file: avoid_print
+
 import 'dart:io';
 import 'package:dotenv/dotenv.dart';
 import 'package:stripe_api_client/stripe_api_client.dart';
 import 'package:stripe_api_client/v1/customers/customers_get_request_body.dart';
 import 'package:microsoft_kiota_bundle/microsoft_kiota_bundle.dart';
-
-/// Custom authentication provider that adds Stripe API key to Authorization header
-class StripeApiKeyAuthenticationProvider implements AuthenticationProvider {
-  final String apiKey;
-
-  StripeApiKeyAuthenticationProvider(this.apiKey);
-
-  @override
-  Future<void> authenticateRequest(RequestInformation request,
-      [Map<String, Object>? additionalAuthenticationContext]) async {
-    // Stripe uses Bearer token authentication
-    // Headers is a Map-like structure with a put method
-    request.headers.put('Authorization', 'Bearer $apiKey');
-  }
-}
 
 void main() async {
   // Load environment variables from .env file
@@ -34,7 +21,11 @@ void main() async {
   print('Initializing Stripe client...');
 
   // Create authentication provider with API key
-  final authProvider = StripeApiKeyAuthenticationProvider(apiKey);
+  final authProvider = ApiKeyAuthenticationProvider(
+    apiKey: 'Bearer $apiKey',
+    parameterName: 'Authorization',
+    keyLocation: ApiKeyLocation.header,
+  );
 
   // Create request adapter
   final requestAdapter = DefaultRequestAdapter(authProvider: authProvider);
