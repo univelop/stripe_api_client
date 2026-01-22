@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script to generate Stripe API client code from OpenAPI specification
-# This script downloads the latest Stripe OpenAPI spec and generates Dart code
+# This script downloads the latest Stripe OpenAPI spec and generates Dart code using kiota
 
 set -e  # Exit on error
 
@@ -26,15 +26,16 @@ PACKAGE_AUTHOR_ESC="${PACKAGE_AUTHOR// /\\ }"
 echo -e "${GREEN}Stripe API Client Code Generator${NC}"
 echo "=================================="
 
-# Check if openapi-generator-cli is available
-echo -e "${YELLOW}Checking for openapi-generator-cli...${NC}"
-if ! command -v openapi-generator-cli &> /dev/null; then
-    echo -e "${RED}Error: openapi-generator-cli is not installed.${NC}"
+# Check if kiota is available
+echo -e "${YELLOW}Checking for kiota...${NC}"
+if ! command -v kiota &> /dev/null; then
+    echo -e "${RED}Error: kiota is not installed.${NC}"
     echo "Please install it using one of:"
-    echo "  npm: npm install -g @openapitools/openapi-generator-cli"
-    echo "  pip: pip install openapi-generator-cli"
-    echo "  brew: brew install openapi-generator"
-    echo "See https://github.com/OpenAPITools/openapi-generator?tab=readme-ov-file#1---installation"
+    echo "  macOS: brew install microsoft/kiota/kiota"
+    echo "  Linux: See https://aka.ms/get/kiota/linux"
+    echo "  Windows: See https://aka.ms/get/kiota/windows"
+    echo "  Or download from: https://github.com/microsoft/kiota/releases"
+    echo "See https://learn.microsoft.com/en-us/openapi/kiota/install"
     exit 1
 fi
 
@@ -56,94 +57,73 @@ if [ -d "$TEMP_DIR" ]; then
     rm -rf "$TEMP_DIR"
 fi
 
-# Generate code using openapi-generator-cli
-echo -e "${YELLOW}Generating Dart code...${NC}"
-if ! openapi-generator-cli generate \
-    -i "$TEMP_SPEC_FILE" \
-    -g dart-dio \
+# Generate code using kiota
+echo -e "${YELLOW}Generating Dart code with kiota...${NC}"
+if ! kiota generate \
+    -l dart \
+    -d "$TEMP_SPEC_FILE" \
+    -c StripeClient \
     -o "$TEMP_DIR" \
-    -p "pubName=$PACKAGE_NAME" \
-    -p "pubDescription=${PACKAGE_DESCRIPTION_ESC}" \
-    -p "pubAuthor=${PACKAGE_AUTHOR_ESC}"; then
+    --clean-output; then
     echo -e "${RED}Error: Code generation failed${NC}"
     rm -f "$TEMP_SPEC_FILE"
     exit 1
 fi
 echo -e "${GREEN}✓ Code generated${NC}"
 
-# Copy generated lib/ to root lib/ (preserve builder files if they exist)
+# Copy generated code to root lib/
 echo -e "${YELLOW}Copying generated code to lib/...${NC}"
+# Kiota generates code directly in the output directory
+# Check if there's a lib subdirectory (some generators create it) or files directly in output
 if [ -d "$TEMP_DIR/lib" ]; then
-    # Create lib directory if it doesn't exist
+    # If kiota created a lib subdirectory, copy its contents
     mkdir -p lib
-    
-    # Copy all files from generated lib to root lib
-    # Exclude builder-related files if they exist
-    rsync -av --exclude='builder.dart' --exclude='src/' "$TEMP_DIR/lib/" lib/ || {
-        # Fallback to cp if rsync is not available
-        find "$TEMP_DIR/lib" -type f -not -path "*/builder.dart" -not -path "*/src/*" -exec cp --parents {} lib/ \;
-    }
-    echo -e "${GREEN}✓ Copied generated code${NC}"
+    # Copy all files from generated lib to root lib, preserving structure
+    if command -v rsync &> /dev/null; then
+        rsync -av "$TEMP_DIR/lib/" lib/
+    else
+        cp -r "$TEMP_DIR/lib/"* lib/ 2>/dev/null || cp -r "$TEMP_DIR/lib/." lib/
+    fi
+    echo -e "${GREEN}✓ Copied generated code from lib/ subdirectory${NC}"
+elif find "$TEMP_DIR" -name "*.dart" -type f | grep -q .; then
+    # If Dart files are directly in the output directory or subdirectories
+    mkdir -p lib
+    # Find and copy all .dart files, preserving directory structure
+    find "$TEMP_DIR" -name "*.dart" -type f | while read -r file; do
+        # Get relative path from temp directory
+        rel_path="${file#$TEMP_DIR/}"
+        # Skip if it's already in a lib/ path
+        if [[ "$rel_path" == lib/* ]]; then
+            rel_path="${rel_path#lib/}"
+        fi
+        # Create target directory
+        target_dir="lib/$(dirname "$rel_path")"
+        mkdir -p "$target_dir"
+        # Copy file
+        cp "$file" "lib/$rel_path"
+    done
+    echo -e "${GREEN}✓ Copied generated Dart files${NC}"
 else
-    echo -e "${RED}Error: Generated lib directory not found${NC}"
+    echo -e "${RED}Error: No generated Dart files found in $TEMP_DIR${NC}"
+    echo "Kiota output structure may be different than expected."
     rm -f "$TEMP_SPEC_FILE"
     rm -rf "$TEMP_DIR"
     exit 1
 fi
 
-# Merge pubspec.yaml
-echo -e "${YELLOW}Merging pubspec.yaml...${NC}"
-if [ -f "$TEMP_DIR/pubspec.yaml" ] && [ -f "pubspec.yaml" ]; then
-    # Extract metadata from base pubspec.yaml
-    BASE_NAME=$(grep '^name:' pubspec.yaml | sed 's/name: //' | xargs)
-    BASE_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | xargs)
-    BASE_HOMEPAGE=$(grep '^homepage:' pubspec.yaml | sed 's/homepage: //' | xargs)
-    BASE_REPOSITORY=$(grep '^repository:' pubspec.yaml | sed 's/repository: //' | xargs)
-    
-    # Use generated pubspec.yaml as base
-    cp "$TEMP_DIR/pubspec.yaml" pubspec.yaml.new
-    
-    # Update metadata in generated pubspec using sed with proper escaping
-    if [ -n "$BASE_NAME" ]; then
-        sed -i.bak "s/^name:.*/name: $BASE_NAME/" pubspec.yaml.new
-    fi
-    if [ -n "$BASE_VERSION" ]; then
-        sed -i.bak "s/^version:.*/version: $BASE_VERSION/" pubspec.yaml.new
-    fi
-    if [ -n "$BASE_HOMEPAGE" ]; then
-        sed -i.bak "s|^homepage:.*|homepage: $BASE_HOMEPAGE|" pubspec.yaml.new
-    fi
-    if [ -n "$BASE_REPOSITORY" ]; then
-        sed -i.bak "s|^repository:.*|repository: $BASE_REPOSITORY|" pubspec.yaml.new
-    fi
-    
-    # Add environment section from base if it exists (simple approach: append after name)
-    if grep -q "^environment:" pubspec.yaml; then
-        ENV_LINE=$(grep "^environment:" pubspec.yaml)
-        SDK_LINE=$(grep "^  sdk:" pubspec.yaml)
-        # Remove only the environment: and sdk: lines (not the whole section)
-        sed -i.bak '/^environment:/d' pubspec.yaml.new || true
-        sed -i.bak '/^  sdk:/d' pubspec.yaml.new || true
-        # Add environment section after name
-        sed -i.bak "/^name:.*/a\\
-$ENV_LINE\\
-$SDK_LINE
-" pubspec.yaml.new
-    fi
-    
-    # Clean up backup files
-    rm -f pubspec.yaml.new.bak
-    
-    # Replace original with merged version
-    mv pubspec.yaml.new pubspec.yaml
-    echo -e "${GREEN}✓ Merged pubspec.yaml${NC}"
+# Copy kiota-lock.json if it exists (for future updates using kiota update)
+if [ -f "$TEMP_DIR/kiota-lock.json" ]; then
+    cp "$TEMP_DIR/kiota-lock.json" .kiota-lock.json 2>/dev/null || true
+    echo -e "${GREEN}✓ Copied kiota-lock.json${NC}"
 fi
 
-# Handle analysis_options.yaml (keep our custom one for now)
-if [ -f "$TEMP_DIR/analysis_options.yaml" ]; then
-    echo -e "${YELLOW}Note: Generated analysis_options.yaml available at $TEMP_DIR/analysis_options.yaml${NC}"
-    echo "Keeping custom analysis_options.yaml"
-fi
+# Note: Kiota doesn't generate pubspec.yaml, so we keep our existing one
+# We may need to add kiota dependencies manually if required
+echo -e "${YELLOW}Note: Kiota doesn't generate pubspec.yaml${NC}"
+echo "Keeping existing pubspec.yaml. You may need to add kiota dependencies manually."
+
+# Note: Kiota doesn't generate analysis_options.yaml, so we keep our existing one
+echo "Keeping custom analysis_options.yaml"
 
 # Format generated code
 echo -e "${YELLOW}Formatting generated code...${NC}"
