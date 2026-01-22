@@ -9,5 +9,9 @@ environment:
 dependencies:
   microsoft_kiota_bundle: ^0.1.0
   microsoft_kiota_abstractions: ^0.0.3
+  microsoft_kiota_serialization_form: ^0.0.3
+  microsoft_kiota_serialization_json: ^0.0.6
+  microsoft_kiota_serialization_multipart: ^0.0.3
+  microsoft_kiota_serialization_text: ^0.0.4
 dev_dependencies:
   lints: ^6.0.0
