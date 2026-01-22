@@ -60,51 +60,41 @@ dart pub get
 
 ## Usage
 
-### Basic Example
+### Basic Example with Stripe API Key Authentication
 
 ```dart
 import 'package:stripe_api_client/stripe_api_client.dart';
+import 'package:stripe_api_client/v1/customers/customers_get_request_body.dart';
 import 'package:microsoft_kiota_bundle/microsoft_kiota_bundle.dart';
+import 'package:microsoft_kiota_abstractions/microsoft_kiota_abstractions.dart';
 
-void main() async {
-  // Create an authentication provider
-  // For Stripe, you'll need to use an API key authentication provider
-  var authProvider = AnonymousAuthenticationProvider();
-  
-  // Create a request adapter
-  var requestAdapter = DefaultRequestAdapter(authProvider: authProvider);
-  
-  // Initialize the Stripe client
-  var client = StripeClient(requestAdapter);
-  
-  // Make API calls using the generated client
-  // Example: await client.customers.getAsync();
-}
-```
+// Setup
+final apiKey = 'sk_test_your_api_key_here';
+final authProvider = ApiKeyAuthenticationProvider(
+  apiKey: 'Bearer $apiKey',
+  parameterName: 'Authorization',
+  keyLocation: ApiKeyLocation.header,
+);
+final requestAdapter = DefaultRequestAdapter(authProvider: authProvider);
+final client = StripeClient(requestAdapter);
 
-### With Stripe API Key Authentication
-
-```dart
-import 'package:stripe_api_client/stripe_api_client.dart';
-import 'package:microsoft_kiota_bundle/microsoft_kiota_bundle.dart';
-
-void main() async {
-  // Create a custom authentication provider for Stripe API keys
-  // You'll need to implement this based on Stripe's authentication requirements
-  var authProvider = AnonymousAuthenticationProvider();
-  
-  // Create a request adapter with custom headers for Stripe API key
-  var requestAdapter = DefaultRequestAdapter(authProvider: authProvider);
-  // Add Stripe API key to headers
-  // requestAdapter.baseUrl = 'https://api.stripe.com/v1';
-  
-  var client = StripeClient(requestAdapter);
-  
-  // Use the client to make authenticated API calls
-}
+// Make API calls
+final response = await client.v1.customers.getAsync(
+  CustomersGetRequestBody(),
+);
 ```
 
 For more details on authentication providers and usage patterns, see the [Kiota Dart Quickstart](https://learn.microsoft.com/en-us/openapi/kiota/quickstarts/dart).
+
+### Working Example
+
+See the [`example/`](example/) directory for a complete working example that demonstrates:
+
+- How to set up authentication with Stripe API keys
+- How to list customers from your Stripe account
+- How to use environment variables for configuration
+
+The example includes detailed setup instructions in [`example/README.md`](example/README.md).
 
 ## Development
 
@@ -119,6 +109,7 @@ To generate the code:
 ```
 
 The script will:
+
 1. Download the latest Stripe OpenAPI specification from GitHub
 2. Use `kiota` to generate Dart code
 3. Copy generated code into the package structure
@@ -137,6 +128,9 @@ The script will:
 
 ```
 stripe_api_client/
+├── example/           # Working example demonstrating usage
+│   ├── list_customers.dart
+│   └── README.md
 ├── lib/
 │   ├── api/          # Generated API client classes
 │   ├── model/         # Generated data models
