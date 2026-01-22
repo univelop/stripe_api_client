@@ -1,160 +1,161 @@
 name: Update Stripe OpenAPI Spec
 
 on:
-    schedule:
-        # Run weekly on Sunday at 00:00 UTC
-        - cron: "0 0 * * 0"
-    workflow_dispatch: # Allow manual triggering
+  schedule:
+    # Run weekly on Sunday at 00:00 UTC
+    - cron: "0 0 * * 0"
+  workflow_dispatch: # Allow manual triggering
 
 jobs:
-    update-spec:
-        runs-on: ubuntu-latest
+  update-spec:
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v4
-              with:
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  fetch-depth: 0
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: "20"
+      - name: Install kiota
+        run: |
+          # Download and install kiota for Linux
+          KIOTA_VERSION="1.18.1"  # Update as needed
+          wget -q "https://github.com/microsoft/kiota/releases/download/v${KIOTA_VERSION}/kiota-linux-x64" -O /tmp/kiota
+          chmod +x /tmp/kiota
+          sudo mv /tmp/kiota /usr/local/bin/kiota
+          kiota --version
 
-            - name: Install openapi-generator-cli
-              run: npm install -g @openapitools/openapi-generator-cli
-
-            - name: Setup Dart SDK
-              uses: dart-lang/setup-dart@v1
-              with:
-                  sdk: stable
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
 
       - name: Download latest Stripe OpenAPI spec
         id: download-spec
         run: |
           curl -L https://raw.githubusercontent.com/stripe/openapi/refs/heads/master/openapi/spec3.json -o stripe_spec.json
-                  NEW_HASH=$(sha256sum stripe_spec.json | cut -d' ' -f1)
-                  echo "new_hash=$NEW_HASH" >> $GITHUB_OUTPUT
-                  echo "Downloaded spec with hash: $NEW_HASH"
+          NEW_HASH=$(sha256sum stripe_spec.json | cut -d' ' -f1)
+          echo "new_hash=$NEW_HASH" >> $GITHUB_OUTPUT
+          echo "Downloaded spec with hash: $NEW_HASH"
 
-            - name: Check for changes
-              id: check-changes
-              run: |
-                  # Get the hash of the last downloaded spec (if exists)
-                  if [ -f .stripe_spec_hash ]; then
-                    OLD_HASH=$(cat .stripe_spec_hash)
-                    echo "old_hash=$OLD_HASH" >> $GITHUB_OUTPUT
-                  else
-                    echo "old_hash=" >> $GITHUB_OUTPUT
-                  fi
+      - name: Check for changes
+        id: check-changes
+        run: |
+          # Get the hash of the last downloaded spec (if exists)
+          if [ -f .stripe_spec_hash ]; then
+            OLD_HASH=$(cat .stripe_spec_hash)
+            echo "old_hash=$OLD_HASH" >> $GITHUB_OUTPUT
+          else
+            echo "old_hash=" >> $GITHUB_OUTPUT
+          fi
 
-                  NEW_HASH="${{ steps.download-spec.outputs.new_hash }}"
-                  OLD_HASH="${{ steps.check-changes.outputs.old_hash }}"
+          NEW_HASH="${{ steps.download-spec.outputs.new_hash }}"
+          OLD_HASH="${{ steps.check-changes.outputs.old_hash }}"
 
-                  if [ "$NEW_HASH" != "$OLD_HASH" ]; then
-                    echo "has_changes=true" >> $GITHUB_OUTPUT
-                    echo "Changes detected in Stripe OpenAPI spec"
-                  else
-                    echo "has_changes=false" >> $GITHUB_OUTPUT
-                    echo "No changes detected"
-                  fi
+          if [ "$NEW_HASH" != "$OLD_HASH" ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "Changes detected in Stripe OpenAPI spec"
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "No changes detected"
+          fi
 
       - name: Generate code
         if: steps.check-changes.outputs.has_changes == 'true'
         run: |
           # Make generate script executable
           chmod +x generate.sh
-          
+
           # Run the generation script
           ./generate.sh
-          
+
           # Install dependencies from updated pubspec.yaml
           dart pub get
 
-            - name: Determine version bump
-              id: version-bump
-              if: steps.check-changes.outputs.has_changes == 'true'
-              run: |
-                  # For now, default to PATCH version bump
-                  # In the future, this could analyze the spec changes to determine
-                  # if it's a MAJOR, MINOR, or PATCH change
-                  BUMP_TYPE="patch"
-                  echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
-                  echo "Version bump type: $BUMP_TYPE"
+      - name: Determine version bump
+        id: version-bump
+        if: steps.check-changes.outputs.has_changes == 'true'
+        run: |
+          # For now, default to PATCH version bump
+          # In the future, this could analyze the spec changes to determine
+          # if it's a MAJOR, MINOR, or PATCH change
+          BUMP_TYPE="patch"
+          echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
+          echo "Version bump type: $BUMP_TYPE"
 
-            - name: Update version in pubspec.yaml
-              if: steps.check-changes.outputs.has_changes == 'true'
-              run: |
-                  BUMP_TYPE="${{ steps.version-bump.outputs.bump_type }}"
+      - name: Update version in pubspec.yaml
+        if: steps.check-changes.outputs.has_changes == 'true'
+        run: |
+          BUMP_TYPE="${{ steps.version-bump.outputs.bump_type }}"
 
-                  # Read current version
-                  CURRENT_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //')
-                  echo "Current version: $CURRENT_VERSION"
+          # Read current version
+          CURRENT_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //')
+          echo "Current version: $CURRENT_VERSION"
 
-                  # Parse version components
-                  IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+          # Parse version components
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
 
-                  # Bump version
-                  case "$BUMP_TYPE" in
-                    major)
-                      MAJOR=$((MAJOR + 1))
-                      MINOR=0
-                      PATCH=0
-                      ;;
-                    minor)
-                      MINOR=$((MINOR + 1))
-                      PATCH=0
-                      ;;
-                    patch)
-                      PATCH=$((PATCH + 1))
-                      ;;
-                  esac
+          # Bump version
+          case "$BUMP_TYPE" in
+            major)
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              ;;
+            minor)
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            patch)
+              PATCH=$((PATCH + 1))
+              ;;
+          esac
 
-                  NEW_VERSION="$MAJOR.$MINOR.$PATCH"
-                  echo "New version: $NEW_VERSION"
-                  echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          echo "New version: $NEW_VERSION"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
-                  # Update pubspec.yaml
-                  sed -i "s/^version: .*/version: $NEW_VERSION/" pubspec.yaml
+          # Update pubspec.yaml
+          sed -i "s/^version: .*/version: $NEW_VERSION/" pubspec.yaml
 
-            - name: Update CHANGELOG.md
-              if: steps.check-changes.outputs.has_changes == 'true'
-              run: |
-                  NEW_VERSION="${{ steps.version-bump.outputs.new_version }}"
-                  DATE=$(date +%Y-%m-%d)
+      - name: Update CHANGELOG.md
+        if: steps.check-changes.outputs.has_changes == 'true'
+        run: |
+          NEW_VERSION="${{ steps.version-bump.outputs.new_version }}"
+          DATE=$(date +%Y-%m-%d)
 
-                  # Add new entry to CHANGELOG
-                  sed -i "2a\\\n## [$NEW_VERSION] - $DATE\n\n### Changed\n- Updated Stripe OpenAPI specification to latest version\n" CHANGELOG.md
+          # Add new entry to CHANGELOG
+          sed -i "2a\\\n## [$NEW_VERSION] - $DATE\n\n### Changed\n- Updated Stripe OpenAPI specification to latest version\n" CHANGELOG.md
 
-            - name: Save spec hash
-              if: steps.check-changes.outputs.has_changes == 'true'
-              run: |
-                  echo "${{ steps.download-spec.outputs.new_hash }}" > .stripe_spec_hash
+      - name: Save spec hash
+        if: steps.check-changes.outputs.has_changes == 'true'
+        run: |
+          echo "${{ steps.download-spec.outputs.new_hash }}" > .stripe_spec_hash
 
-            - name: Configure Git
-              if: steps.check-changes.outputs.has_changes == 'true'
-              run: |
-                  git config --local user.email "action@github.com"
-                  git config --local user.name "GitHub Action"
+      - name: Configure Git
+        if: steps.check-changes.outputs.has_changes == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
 
-            - name: Create Pull Request
-              if: steps.check-changes.outputs.has_changes == 'true'
-              uses: peter-evans/create-pull-request@v5
-              with:
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  commit-message: "chore: update Stripe OpenAPI spec to latest version"
-                  title: "Auto: Update Stripe OpenAPI spec (v${{ steps.version-bump.outputs.new_version }})"
-                  body: |
-                      This PR automatically updates the Stripe API client to the latest OpenAPI specification.
+      - name: Create Pull Request
+        if: steps.check-changes.outputs.has_changes == 'true'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: update Stripe OpenAPI spec to latest version"
+          title: "Auto: Update Stripe OpenAPI spec (v${{ steps.version-bump.outputs.new_version }})"
+          body: |
+            This PR automatically updates the Stripe API client to the latest OpenAPI specification.
 
-                      **Changes:**
-                      - Updated Stripe OpenAPI specification
-                      - Regenerated Dart client code
-                      - Bumped version to ${{ steps.version-bump.outputs.new_version }}
+            **Changes:**
+            - Updated Stripe OpenAPI specification
+            - Regenerated Dart client code
+            - Bumped version to ${{ steps.version-bump.outputs.new_version }}
 
-                      **Version Bump:** ${{ steps.version-bump.outputs.bump_type }}
+            **Version Bump:** ${{ steps.version-bump.outputs.bump_type }}
 
-                      This PR was created automatically by the update workflow.
-                  branch: update-stripe-spec
-                  delete-branch: true
+            This PR was created automatically by the update workflow.
+          branch: update-stripe-spec
+          delete-branch: true
