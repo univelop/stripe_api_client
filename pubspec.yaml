@@ -1,6 +1,6 @@
 name: stripe_api_client
 description: Stripe API Client generated from OpenAPI specification
-version: 0.2.3
+version: 0.2.4
 homepage: https://github.com/univelop/stripe_api_client
 repository: https://github.com/univelop/stripe_api_client
 
