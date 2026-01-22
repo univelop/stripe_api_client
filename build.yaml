@@ -1,8 +1,0 @@
-targets:
-  $default:
-    builders:
-      stripe_api_client|openApiBuilder:
-        enabled: true
-        generate_for:
-          include:
-            - lib/builder.dart

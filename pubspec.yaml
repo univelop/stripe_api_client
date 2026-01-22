@@ -9,9 +9,3 @@ environment:
 
 dependencies:
   # Dependencies will be added by the generated code
-  build: ^2.4.0
-
-dev_dependencies:
-  build_runner: ^2.4.0
-  http: ^1.2.0
-  path: ^1.9.0

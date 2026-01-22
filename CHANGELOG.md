@@ -10,4 +10,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial package setup
 - Automatic code generation from Stripe OpenAPI specification
-- Build runner integration for code generation
+- Shell script (`generate.sh`) for code generation
+- GitHub Actions workflow for automatic updates

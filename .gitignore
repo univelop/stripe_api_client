@@ -5,6 +5,7 @@
 build/
 .tmp_generated/
 .stripe_spec_hash
+temp_spec.json
 
 # IDE
 .idea/
@@ -16,7 +17,3 @@ build/
 # OS
 .DS_Store
 Thumbs.db
-
-# Build runner
-*.g.dart
-*.freezed.dart

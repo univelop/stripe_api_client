@@ -100,26 +100,28 @@ final api = DefaultApi(dio);
 
 ### Generating Code
 
-This package uses `build_runner` to automatically generate code from the Stripe OpenAPI specification.
+This package uses a shell script to automatically generate code from the Stripe OpenAPI specification.
 
 To generate the code:
 
 ```bash
-dart run build_runner build
+./generate.sh
 ```
 
-To watch for changes and regenerate automatically:
-
-```bash
-dart run build_runner watch
-```
+The script will:
+1. Download the latest Stripe OpenAPI specification from GitHub
+2. Use `openapi-generator-cli` to generate Dart code using the `dart-dio` generator
+3. Merge generated code into the package structure
+4. Format the generated code
+5. Clean up temporary files
 
 ### How It Works
 
-1. The build process downloads the latest Stripe OpenAPI specification from GitHub
+1. The script downloads the latest Stripe OpenAPI specification from GitHub
 2. `openapi-generator-cli` generates Dart code using the `dart-dio` generator
-3. Generated code is merged into the package structure
-4. The package is ready to use
+3. Generated code is merged into the package structure (preserving metadata in `pubspec.yaml`)
+4. The generated code is formatted using `dart format`
+5. The package is ready to use
 
 ### Project Structure
 
