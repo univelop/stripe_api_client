@@ -1,5 +1,7 @@
 # Stripe API Client
 
+> **⚠️ Disclaimer:** This is an unofficial package and is not affiliated with or endorsed by Stripe, Inc.
+
 A Dart package providing a complete Stripe API client, automatically generated from the official [Stripe OpenAPI specification](https://github.com/stripe/openapi).
 
 ## Features
