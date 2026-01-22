@@ -12,29 +12,6 @@ A Dart package providing a complete Stripe API client, automatically generated f
 
 ## Installation
 
-### Prerequisites
-
-Before generating code, you need to install `kiota`. Choose one of the following installation methods:
-
-#### Option 1: Homebrew (macOS)
-
-```bash
-brew install microsoft/kiota/kiota
-```
-
-#### Option 2: Direct Download
-
-Download the latest release from [Kiota Releases](https://github.com/microsoft/kiota/releases) for your platform.
-
-#### Option 3: Package Managers
-
-- **Linux**: See installation instructions at [Get Kiota for Linux](https://aka.ms/get/kiota/linux)
-- **Windows**: See installation instructions at [Get Kiota for Windows](https://aka.ms/get/kiota/windows)
-
-For more installation options, see the [Kiota Installation Guide](https://learn.microsoft.com/en-us/openapi/kiota/install).
-
-### Add to your project
-
 Add this package to your `pubspec.yaml`:
 
 ```yaml
@@ -97,6 +74,27 @@ See the [`example/`](example/) directory for a complete working example that dem
 The example includes detailed setup instructions in [`example/README.md`](example/README.md).
 
 ## Development
+
+### Prerequisites
+
+To generate code from the Stripe OpenAPI specification, you need to install `kiota`. Choose one of the following installation methods:
+
+#### Option 1: Homebrew (macOS)
+
+```bash
+brew install microsoft/kiota/kiota
+```
+
+#### Option 2: Direct Download
+
+Download the latest release from [Kiota Releases](https://github.com/microsoft/kiota/releases) for your platform.
+
+#### Option 3: Package Managers
+
+- **Linux**: See installation instructions at [Get Kiota for Linux](https://aka.ms/get/kiota/linux)
+- **Windows**: See installation instructions at [Get Kiota for Windows](https://aka.ms/get/kiota/windows)
+
+For more installation options, see the [Kiota Installation Guide](https://learn.microsoft.com/en-us/openapi/kiota/install).
 
 ### Generating Code
 
