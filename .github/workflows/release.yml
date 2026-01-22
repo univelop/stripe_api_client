@@ -1,0 +1,128 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    # Only run on push to main or when PR is merged
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Check for new commits since last tag
+        id: check-commits
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "${LAST_TAG}" ]; then
+            # No tags exist, check if there are any commits
+            COMMIT_COUNT=$(git rev-list --count HEAD 2>/dev/null || echo "0")
+            if [ "${COMMIT_COUNT}" -gt 0 ]; then
+              echo "has_new_commits=true" >> $GITHUB_OUTPUT
+            else
+              echo "has_new_commits=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            # Check if there are commits since last tag
+            COMMIT_COUNT=$(git rev-list ${LAST_TAG}..HEAD --count 2>/dev/null || echo "0")
+            if [ "${COMMIT_COUNT}" -gt 0 ]; then
+              echo "has_new_commits=true" >> $GITHUB_OUTPUT
+            else
+              echo "has_new_commits=false" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Analyze conventional commits
+        id: analyze-commits
+        if: steps.check-commits.outputs.has_new_commits == 'true'
+        run: |
+          chmod +x .github/scripts/analyze-commits.sh
+          BUMP_TYPE=$(.github/scripts/analyze-commits.sh)
+          echo "bump_type=${BUMP_TYPE}" >> $GITHUB_OUTPUT
+          echo "Determined version bump type: ${BUMP_TYPE}"
+
+      - name: Bump version
+        id: version-bump
+        if: steps.check-commits.outputs.has_new_commits == 'true'
+        run: |
+          chmod +x .github/scripts/bump-version.sh
+          .github/scripts/bump-version.sh "${{ steps.analyze-commits.outputs.bump_type }}"
+          NEW_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //')
+          echo "new_version=${NEW_VERSION}" >> $GITHUB_OUTPUT
+          echo "Version bumped to: ${NEW_VERSION}"
+
+      - name: Generate changelog
+        if: steps.check-commits.outputs.has_new_commits == 'true'
+        run: |
+          chmod +x .github/scripts/generate-changelog.sh
+          .github/scripts/generate-changelog.sh "${{ steps.version-bump.outputs.new_version }}"
+
+      - name: Check for changes
+        id: check-changes
+        if: steps.check-commits.outputs.has_new_commits == 'true'
+        run: |
+          if git diff --quiet pubspec.yaml CHANGELOG.md; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "No version or changelog changes detected"
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "Version and/or changelog updated"
+          fi
+
+      - name: Commit version and changelog changes
+        if: |
+          steps.check-commits.outputs.has_new_commits == 'true' &&
+          steps.check-changes.outputs.has_changes == 'true'
+        run: |
+          git add pubspec.yaml CHANGELOG.md
+          git commit -m "chore: bump version to ${{ steps.version-bump.outputs.new_version }}"
+          git push
+
+      - name: Create tag
+        if: |
+          steps.check-commits.outputs.has_new_commits == 'true' &&
+          steps.check-changes.outputs.has_changes == 'true'
+        run: |
+          git tag -a "v${{ steps.version-bump.outputs.new_version }}" -m "Release v${{ steps.version-bump.outputs.new_version }}"
+          git push origin "v${{ steps.version-bump.outputs.new_version }}"
+
+      - name: Create GitHub Release
+        if: |
+          steps.check-commits.outputs.has_new_commits == 'true' &&
+          steps.check-changes.outputs.has_changes == 'true'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version-bump.outputs.new_version }}
+          name: Release v${{ steps.version-bump.outputs.new_version }}
+          body: |
+            ## Changes in v${{ steps.version-bump.outputs.new_version }}
+            
+            See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for full details.
+            
+            **Version Bump Type:** ${{ steps.analyze-commits.outputs.bump_type }}
+          draft: false
+          prerelease: false
