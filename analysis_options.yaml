@@ -8,6 +8,8 @@ linter:
     - prefer_single_quotes
 
 analyzer:
+  errors:
+    deprecated_member_use_from_same_package: ignore
   exclude:
     - build/**
     - .tmp_generated/**

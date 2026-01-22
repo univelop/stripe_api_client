@@ -1,6 +1,7 @@
 name: stripe_api_client_example
 description: Example script demonstrating Stripe API client usage
 version: 0.1.0
+publish_to: none
 
 environment:
   sdk: ">=3.6.0 <4.0.0"
@@ -9,7 +10,7 @@ dependencies:
   # Reference the parent package
   stripe_api_client:
     path: ../
-  
+
   # Dependencies for the example
   dotenv: ^4.2.0
   microsoft_kiota_bundle: ^0.1.0
