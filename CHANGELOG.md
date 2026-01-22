@@ -1,6 +1,12 @@
 # Changelog
 
 
+## [0.2.1] - 2026-01-22
+
+### Changed
+- Refactor: simplify example to use ApiKeyAuthenticationProvider
+
+
 ## [0.2.0] - 2026-01-22
 
 ### Added
