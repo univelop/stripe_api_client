@@ -88,20 +88,12 @@ if [ -d "$TEMP_DIR/lib" ]; then
 elif find "$TEMP_DIR" -name "*.dart" -type f | grep -q .; then
     # If Dart files are directly in the output directory or subdirectories
     mkdir -p lib
-    # Find and copy all .dart files, preserving directory structure
-    find "$TEMP_DIR" -name "*.dart" -type f | while read -r file; do
-        # Get relative path from temp directory
-        rel_path="${file#$TEMP_DIR/}"
-        # Skip if it's already in a lib/ path
-        if [[ "$rel_path" == lib/* ]]; then
-            rel_path="${rel_path#lib/}"
-        fi
-        # Create target directory
-        target_dir="lib/$(dirname "$rel_path")"
-        mkdir -p "$target_dir"
-        # Copy file
-        cp "$file" "lib/$rel_path"
-    done
+    # Copy entire directory structure at once (much faster than file-by-file)
+    if command -v rsync &> /dev/null; then
+        rsync -av "$TEMP_DIR/" lib/
+    else
+        cp -r "$TEMP_DIR/"* lib/ 2>/dev/null || cp -r "$TEMP_DIR/." lib/
+    fi
     echo -e "${GREEN}✓ Copied generated Dart files${NC}"
 else
     echo -e "${RED}Error: No generated Dart files found in $TEMP_DIR${NC}"
