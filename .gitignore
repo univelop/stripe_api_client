@@ -6,6 +6,7 @@ build/
 .tmp_generated/
 .stripe_spec_hash
 temp_spec.json
+pubspec.lock
 
 # IDE
 .idea/
