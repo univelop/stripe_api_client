@@ -16,23 +16,25 @@ Add this package to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  stripe_api_client:
-    git:
-      url: https://github.com/univelop/stripe_api_client.git
-      ref: main
-```
-
-Or if published to pub.dev:
-
-```yaml
-dependencies:
-  stripe_api_client: ^0.1.0
+  stripe_api_client: ^0.2.2
 ```
 
 Then run:
 
 ```bash
 dart pub get
+```
+
+### Alternative: Install from Git
+
+If you need the latest development version, you can install directly from GitHub:
+
+```yaml
+dependencies:
+  stripe_api_client:
+    git:
+      url: https://github.com/univelop/stripe_api_client.git
+      ref: main
 ```
 
 ## Usage
