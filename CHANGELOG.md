@@ -1,6 +1,17 @@
 # Changelog
 
 
+## [0.3.0] - 2026-01-31
+
+### Added
+- add createStripeClient factory for API key authentication
+- add Stripe form serialization writer with bracket notation
+
+### Changed
+- Refactor: move StripeFormSerializationWriterFactory to own file
+- example: use createStripeClient and drop direct kiota_bundle dependency
+
+
 ## [0.2.4] - 2026-01-22
 
 
