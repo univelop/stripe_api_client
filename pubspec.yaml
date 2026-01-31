@@ -7,6 +7,7 @@ repository: https://github.com/univelop/stripe_api_client
 environment:
   sdk: ">=3.6.0 <4.0.0"
 dependencies:
+  collection: ^1.18.0
   microsoft_kiota_bundle: ^0.1.0
   microsoft_kiota_abstractions: ^0.0.3
   microsoft_kiota_serialization_form: ^0.0.3
