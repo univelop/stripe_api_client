@@ -13,4 +13,3 @@ dependencies:
 
   # Dependencies for the example
   dotenv: ^4.2.0
-  microsoft_kiota_bundle: ^0.1.0

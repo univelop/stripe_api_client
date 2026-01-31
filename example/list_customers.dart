@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:dotenv/dotenv.dart';
 import 'package:stripe_api_client/stripe_api_client.dart';
 import 'package:stripe_api_client/v1/customers/customers_get_request_body.dart';
-import 'package:microsoft_kiota_bundle/microsoft_kiota_bundle.dart';
 
 void main() async {
   // Load environment variables from .env file
@@ -20,18 +19,8 @@ void main() async {
 
   print('Initializing Stripe client...');
 
-  // Create authentication provider with API key
-  final authProvider = ApiKeyAuthenticationProvider(
-    apiKey: 'Bearer $apiKey',
-    parameterName: 'Authorization',
-    keyLocation: ApiKeyLocation.header,
-  );
-
-  // Create request adapter
-  final requestAdapter = DefaultRequestAdapter(authProvider: authProvider);
-
-  // Initialize Stripe client
-  final client = StripeClient(requestAdapter);
+  // Create Stripe client (handles auth + form serialization for Stripe API)
+  final client = createStripeClient(apiKey);
 
   try {
     print('Fetching customers...');

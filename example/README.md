@@ -41,9 +41,8 @@ cd example && dart run list_customers.dart
 ## What This Example Does
 
 1. Loads the Stripe API key from the `.env` file
-2. Creates a custom authentication provider that adds the API key to the Authorization header
-3. Initializes the Stripe client
-4. Fetches and displays a list of customers from your Stripe account
+2. Creates a Stripe client with [createStripeClient], which configures authentication and form serialization for Stripe’s API
+3. Fetches and displays a list of customers from your Stripe account
 
 ## Customization
 
