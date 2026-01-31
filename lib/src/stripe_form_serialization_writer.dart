@@ -31,8 +31,11 @@ import 'package:microsoft_kiota_serialization_form/microsoft_kiota_serialization
 class StripeFormSerializationWriter extends FormSerializationWriter {
   StripeFormSerializationWriter();
 
+  /// Stack of key segments for nested objects/arrays; used by [_makeKey].
   final List<String> _keyPrefixStack = [];
 
+  /// Builds the form key by prefixing [key] with the current stack, e.g.
+  /// stack ["address"] + key "city" → "address[city]".
   String? _makeKey(String? key) {
     if (key == null || key.isEmpty) return null;
     if (_keyPrefixStack.isEmpty) return key;
@@ -43,6 +46,7 @@ class StripeFormSerializationWriter extends FormSerializationWriter {
 
   @override
   void writeStringValue(String? key, String? value) {
+    // Apply current prefix stack so nested keys become e.g. address[city].
     super.writeStringValue(_makeKey(key), value);
   }
 
@@ -52,6 +56,8 @@ class StripeFormSerializationWriter extends FormSerializationWriter {
     T? value, [
     Iterable<Parsable?>? additionalValuesToMerge,
   ]) {
+    // Push this object's key onto the prefix stack so nested writes use
+    // e.g. "address" → address[city], address[line1].
     var didPush = false;
     if (key != null && key.isNotEmpty) {
       _keyPrefixStack.add(key);
@@ -66,6 +72,7 @@ class StripeFormSerializationWriter extends FormSerializationWriter {
 
       value.serialize(this);
 
+      // Merge any additional values into the same key scope (Kiota contract).
       if (additionalValuesToMerge != null) {
         for (final additionalValue in additionalValuesToMerge) {
           if (additionalValue != null) {
@@ -91,6 +98,7 @@ class StripeFormSerializationWriter extends FormSerializationWriter {
     if (values == null) return;
     var i = 0;
     for (final value in values) {
+      // Push key and index so nested writes become e.g. items[0][amount].
       var pushed = 0;
       if (key != null && key.isNotEmpty) {
         _keyPrefixStack.add(key);
