@@ -1,6 +1,6 @@
 import 'package:microsoft_kiota_bundle/microsoft_kiota_bundle.dart';
 
-import 'src/stripe_form_serialization_writer.dart';
+import 'src/stripe_form_serialization_writer_factory.dart';
 import 'stripe_client.dart';
 
 /// Creates a [StripeClient] configured for the given Stripe secret key.
