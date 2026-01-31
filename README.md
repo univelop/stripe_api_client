@@ -43,29 +43,20 @@ dependencies:
 
 ### Basic Example with Stripe API Key Authentication
 
+The simplest way to get a configured Stripe client is to use [createStripeClient], which sets up authentication and the correct form serialization for Stripe’s API:
+
 ```dart
 import 'package:stripe_api_client/stripe_api_client.dart';
 import 'package:stripe_api_client/v1/customers/customers_get_request_body.dart';
-import 'package:microsoft_kiota_bundle/microsoft_kiota_bundle.dart';
-import 'package:microsoft_kiota_abstractions/microsoft_kiota_abstractions.dart';
 
-// Setup
-final apiKey = 'sk_test_your_api_key_here';
-final authProvider = ApiKeyAuthenticationProvider(
-  apiKey: 'Bearer $apiKey',
-  parameterName: 'Authorization',
-  keyLocation: ApiKeyLocation.header,
-);
-final requestAdapter = DefaultRequestAdapter(authProvider: authProvider);
-final client = StripeClient(requestAdapter);
+final client = createStripeClient('sk_test_your_api_key_here');
 
-// Make API calls
 final response = await client.v1.customers.getAsync(
   CustomersGetRequestBody(),
 );
 ```
 
-For more details on authentication providers and usage patterns, see the [Kiota Dart Quickstart](https://learn.microsoft.com/en-us/openapi/kiota/quickstarts/dart).
+For advanced use (custom auth, base URL, etc.), build a [StripeClient] manually with your own request adapter and use [StripeFormSerializationWriterFactory] as the form serialization writer. See the [Kiota Dart Quickstart](https://learn.microsoft.com/en-us/openapi/kiota/quickstarts/dart) for details on authentication providers and usage patterns.
 
 ### Working Example
 
@@ -76,6 +67,14 @@ See the [`example/`](example/) directory for a complete working example that dem
 - How to use environment variables for configuration
 
 The example includes detailed setup instructions in [`example/README.md`](example/README.md).
+
+### Custom Code in This Package
+
+Aside from the generated API client, this package contains **one custom piece of code**: the form serialization writer in `lib/src/stripe_form_serialization_writer.dart` (and its factory [StripeFormSerializationWriterFactory]).
+
+**Why it’s needed:** Stripe’s API expects form-encoded request bodies with **bracket notation** for nested structures (e.g. `address[city]=Berlin`, `items[0][amount]=1000`). The default form writer from the Kiota serialization libraries does not support this key prefixing. The custom writer extends the standard form writer and maintains a key prefix stack so that nested objects and arrays are serialized in the format Stripe expects. Without it, requests that send nested or array data in the body (e.g. creating or updating resources with nested fields) would not match Stripe’s API and could fail or behave incorrectly.
+
+[createStripeClient] wires this writer into the request adapter so you get correct behavior by default.
 
 ## Development
 
@@ -134,9 +133,13 @@ stripe_api_client/
 │   ├── list_customers.dart
 │   └── README.md
 ├── lib/
-│   ├── api/          # Generated API client classes
-│   ├── model/         # Generated data models
-│   ├── auth/          # Authentication utilities
+│   ├── src/           # Custom (non-generated) code
+│   │   └── stripe_form_serialization_writer.dart
+│   ├── stripe_client.dart
+│   ├── stripe_client_factory.dart  # createStripeClient()
+│   ├── stripe_api_client.dart     # Main export
+│   ├── models/        # Generated data models
+│   ├── v1/            # Generated API client classes
 │   └── ...
 ├── pubspec.yaml
 └── README.md
