@@ -1,7 +1,10 @@
 /// Stripe API Client
 ///
 /// This is the main entry point for the Stripe API Client package.
-/// It exports the StripeClient class and related types.
+///
+/// Use [createStripeClient] to get a configured [StripeClient] for a given
+/// API key. The package also exports [StripeClient], [StripeFormSerializationWriter],
+/// and [StripeFormSerializationWriterFactory] for advanced use.
 library stripe_api_client;
 
 export 'src/stripe_form_serialization_writer.dart';
