@@ -1,6 +1,12 @@
 # Changelog
 
 
+## [0.4.0] - 2026-02-01
+
+### Added
+- support array-of-primitive wrappers via additionalData
+
+
 ## [0.3.0] - 2026-01-31
 
 ### Added
