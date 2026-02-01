@@ -76,6 +76,28 @@ Aside from the generated API client, this package contains **one custom piece of
 
 [createStripeClient] wires this writer into the request adapter so you get correct behavior by default.
 
+#### Array-of-primitive fields (e.g. `payment_method_types`)
+
+Some Stripe request fields are “array of string enum” in the API (e.g. `payment_method_types[0]=bancontact`, `payment_method_types[1]=card`). The OpenAPI spec models these as `anyOf: [array of string enum, string]`, so the code generator produces a composed type whose array branch is an `Iterable` of “Member1” objects. Those generated Member1 classes have no string field—only `additionalData`. To send the correct form body, put each primitive value in `additionalData` under [StripeFormSerializationWriter.primitiveValueKey] (`'#value'`):
+
+```dart
+import 'package:stripe_api_client/stripe_api_client.dart';
+import 'package:stripe_api_client/v1/subscriptions/subscriptions_post_request_body_payment_settings_payment_method_types.dart';
+import 'package:stripe_api_client/v1/subscriptions/subscriptions_post_request_body_payment_settings_payment_method_types_member1.dart';
+
+final paymentMethodTypes = SubscriptionsPostRequestBodyPaymentSettingsPaymentMethodTypes()
+  ..subscriptionsPostRequestBodyPaymentSettingsPaymentMethodTypesMember1 = [
+    SubscriptionsPostRequestBodyPaymentSettingsPaymentMethodTypesMember1()
+      ..additionalData[StripeFormSerializationWriter.primitiveValueKey] = 'bancontact',
+    SubscriptionsPostRequestBodyPaymentSettingsPaymentMethodTypesMember1()
+      ..additionalData[StripeFormSerializationWriter.primitiveValueKey] = 'card',
+    SubscriptionsPostRequestBodyPaymentSettingsPaymentMethodTypesMember1()
+      ..additionalData[StripeFormSerializationWriter.primitiveValueKey] = 'eps',
+  ];
+```
+
+The form writer will then emit `payment_method_types[0]=bancontact`, `payment_method_types[1]=card`, etc. You can wrap this in a small helper (e.g. a function that builds the Member1 list from a `List<String>`) to keep call sites simple.
+
 ## Development
 
 ### Prerequisites
