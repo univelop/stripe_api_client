@@ -1,6 +1,14 @@
 # Changelog
 
 
+## [0.5.0] - 2026-02-02
+
+### Added
+-  add StripeRequestAdapter for Stripe bracket notation query params
+
+### Fixed
+-  apply array query param key to urlTemplate so URI is correct
+
 ## [0.4.0] - 2026-02-01
 
 ### Added
