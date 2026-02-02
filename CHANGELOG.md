@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.1] - 2026-02-02
+
+### Fixed
+
+- add http as direct dependency so pub publish validation passes (required by sendRaw)
+
 ## [0.6.0] - 2026-02-02
 
 ### Added
