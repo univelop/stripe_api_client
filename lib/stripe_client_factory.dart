@@ -1,6 +1,7 @@
 import 'package:microsoft_kiota_bundle/microsoft_kiota_bundle.dart';
 
 import 'src/stripe_form_serialization_writer_factory.dart';
+import 'src/stripe_request_adapter.dart';
 import 'stripe_client.dart';
 
 /// Creates a [StripeClient] configured for the given Stripe secret key.
@@ -12,6 +13,8 @@ import 'stripe_client.dart';
 /// - **Form serialization**: A custom form writer that uses bracket notation
 ///   for nested objects (e.g. `address[city]`, `items[0][amount]`), which
 ///   Stripe's API expects. See [StripeFormSerializationWriter] for details.
+/// - **Query parameters**: Array query params use Stripe's bracket notation
+///   (e.g. `expand[]=discounts`). See [StripeRequestAdapter] for details.
 ///
 /// Example:
 ///
@@ -31,7 +34,7 @@ StripeClient createStripeClient(String secretKey) {
     keyLocation: ApiKeyLocation.header,
   );
 
-  final requestAdapter = DefaultRequestAdapter(
+  final requestAdapter = StripeRequestAdapter(
     authProvider: authProvider,
     sWriterFactory: const StripeFormSerializationWriterFactory(),
   );
