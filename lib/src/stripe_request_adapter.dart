@@ -1,13 +1,15 @@
-import 'package:microsoft_kiota_abstractions/microsoft_kiota_abstractions.dart';
 import 'package:microsoft_kiota_bundle/microsoft_kiota_bundle.dart';
 
 /// Request adapter that formats query parameters for the Stripe API.
 ///
 /// Stripe expects array query parameters with bracket notation, e.g.
 /// `expand[]=discounts` instead of `expand=discounts`. This adapter
-/// overrides the send methods and, before delegating, mutates
-/// [RequestInformation.queryParameters] so that any parameter whose value
-/// is a [List] uses the key with a `[]` suffix.
+/// overrides the send methods and, before delegating:
+/// - Mutates [RequestInformation.queryParameters] so that any parameter
+///   whose value is a [List] uses the key with a `[]` suffix.
+/// - Updates [RequestInformation.urlTemplate] so that the same key is
+///   replaced with the bracket form (e.g. `expand` → `expand[]`), ensuring
+///   the final request URI is built correctly.
 class StripeRequestAdapter extends DefaultRequestAdapter {
   StripeRequestAdapter({
     required super.authProvider,
@@ -16,9 +18,9 @@ class StripeRequestAdapter extends DefaultRequestAdapter {
     super.client,
   });
 
-  /// Applies Stripe-style array query params by mutating
-  /// [RequestInformation.queryParameters]: for each param whose value is a
-  /// [List], the key becomes `key[]`.
+  /// Applies Stripe-style array query params: for each param whose value is a
+  /// [List], the key becomes `key[]` in both [RequestInformation.queryParameters]
+  /// and [RequestInformation.urlTemplate].
   void _applyStripeQueryParams(RequestInformation requestInfo) {
     final queryParameters = requestInfo.queryParameters;
     for (final entry in queryParameters.entries.toList()) {
@@ -28,6 +30,8 @@ class StripeRequestAdapter extends DefaultRequestAdapter {
         queryParameters.remove(key);
         final stripeKey = key.endsWith('[]') ? key : '$key[]';
         queryParameters[stripeKey] = value;
+        requestInfo.urlTemplate =
+            requestInfo.urlTemplate?.replaceAll(key, stripeKey);
       }
     }
   }
