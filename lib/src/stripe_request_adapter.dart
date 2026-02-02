@@ -1,3 +1,4 @@
+import 'package:http/http.dart' as http;
 import 'package:microsoft_kiota_bundle/microsoft_kiota_bundle.dart';
 
 /// Request adapter that formats query parameters for the Stripe API.
@@ -34,6 +35,35 @@ class StripeRequestAdapter extends DefaultRequestAdapter {
             requestInfo.urlTemplate?.replaceAll(key, stripeKey);
       }
     }
+  }
+
+  /// Sends [requestInfo] and returns the raw [http.StreamedResponse] without
+  /// deserializing the body. Stripe query params and authentication are applied.
+  ///
+  /// This is a last-resort option when the normal typed [send] methods fail
+  /// because the response shape no longer matches the generated models. For
+  /// example, when using Stripe's expand parameter, expanded fields return
+  /// full objects (e.g. discounts as objects instead of ID strings), which
+  /// can make the response unparsable by the default deserializers. Use
+  /// [sendRaw] to perform the request anyway and then parse the response
+  /// yourself (e.g. with `dart:convert`) or parse only the subparts you need.
+  ///
+  /// See <https://stripe.com/docs/api/expanding_objects> for Stripe's expand
+  /// parameter.
+  ///
+  /// For connection reuse, pass the same [client] you use when creating the
+  /// adapter; if omitted, a new client is used for this call.
+  Future<http.StreamedResponse> sendRaw(
+    RequestInformation requestInfo, {
+    http.Client? client,
+  }) async {
+    _applyStripeQueryParams(requestInfo);
+    requestInfo.pathParameters['baseurl'] = baseUrl;
+    final request = await convertToNativeRequest<http.Request>(requestInfo);
+    if (request == null) {
+      throw StateError('convertToNativeRequest returned null');
+    }
+    return (client ?? http.Client()).send(request);
   }
 
   @override
