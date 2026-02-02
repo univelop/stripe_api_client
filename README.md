@@ -43,7 +43,7 @@ dependencies:
 
 ### Basic Example with Stripe API Key Authentication
 
-The simplest way to get a configured Stripe client is to use [createStripeClient], which sets up authentication and the correct form serialization for Stripe’s API:
+The simplest way to get a configured Stripe client is to use [createStripeClient], which sets up authentication and Stripe-style form serialization, and query parameter formatting for Stripe's API:
 
 ```dart
 import 'package:stripe_api_client/stripe_api_client.dart';
@@ -56,7 +56,7 @@ final response = await client.v1.customers.getAsync(
 );
 ```
 
-For advanced use (custom auth, base URL, etc.), build a [StripeClient] manually with your own request adapter and use [StripeFormSerializationWriterFactory] as the form serialization writer. See the [Kiota Dart Quickstart](https://learn.microsoft.com/en-us/openapi/kiota/quickstarts/dart) for details on authentication providers and usage patterns.
+For advanced use (custom auth, base URL, etc.), build a [StripeClient] manually with your own request adapter and use [StripeFormSerializationWriterFactory] and [StripeRequestAdapter] as needed. See the [Kiota Dart Quickstart](https://learn.microsoft.com/en-us/openapi/kiota/quickstarts/dart) for details on authentication providers and usage patterns.
 
 ### Working Example
 
@@ -70,15 +70,25 @@ The example includes detailed setup instructions in [`example/README.md`](exampl
 
 ### Custom Code in This Package
 
-Aside from the generated API client, this package contains **one custom piece of code**: the form serialization writer in `lib/src/stripe_form_serialization_writer.dart` (and its factory [StripeFormSerializationWriterFactory]).
+Aside from the generated API client, this package includes **two custom pieces** so that requests match Stripe’s API conventions.
 
-**Why it’s needed:** Stripe’s API expects form-encoded request bodies with **bracket notation** for nested structures (e.g. `address[city]=Berlin`, `items[0][amount]=1000`). The default form writer from the Kiota serialization libraries does not support this key prefixing. The custom writer extends the standard form writer and maintains a key prefix stack so that nested objects and arrays are serialized in the format Stripe expects. Without it, requests that send nested or array data in the body (e.g. creating or updating resources with nested fields) would not match Stripe’s API and could fail or behave incorrectly.
+#### 1. Form serialization
 
-[createStripeClient] wires this writer into the request adapter so you get correct behavior by default.
+- **File:** `lib/src/stripe_form_serialization_writer.dart` (and `StripeFormSerializationWriterFactory`).
+- **Purpose:** Stripe expects form-encoded bodies with **bracket notation** for nested structures (e.g. `address[city]=Berlin`, `items[0][amount]=1000`). The default Kiota form writer does not support this. The custom writer keeps a key prefix stack and serializes nested objects and arrays in the format Stripe expects. Without it, requests with nested or array body data would not match the API and could fail or behave incorrectly.
+
+#### 2. Query parameters
+
+- **File:** `lib/src/stripe_request_adapter.dart` (`StripeRequestAdapter`).
+- **Purpose:** Stripe expects array query params with **bracket notation** (e.g. `expand[]=discounts` instead of `expand=discounts`). The adapter updates `RequestInformation.queryParameters` before each request so that any parameter whose value is a list uses a key with a `[]` suffix, producing `key[]=value` in the URI as Stripe requires.
+
+`createStripeClient` uses `StripeRequestAdapter` with `StripeFormSerializationWriterFactory`, so form and query behavior are correct by default.
 
 #### Array-of-primitive fields (e.g. `payment_method_types`)
 
-Some Stripe request fields are “array of string enum” in the API (e.g. `payment_method_types[0]=bancontact`, `payment_method_types[1]=card`). The OpenAPI spec models these as `anyOf: [array of string enum, string]`, so the code generator produces a composed type whose array branch is an `Iterable` of “Member1” objects. Those generated Member1 classes have no string field—only `additionalData`. To send the correct form body, put each primitive value in `additionalData` under [StripeFormSerializationWriter.primitiveValueKey] (`'#value'`):
+Some Stripe request fields are “array of string enum” in the API (e.g. `payment_method_types[0]=bancontact`, `payment_method_types[1]=card`). The OpenAPI spec models these as `anyOf: [array of string enum, string]`, so the generator produces a composed type whose array branch is an `Iterable` of “Member1” objects. Those Member1 classes have no string field, only `additionalData`.
+
+To send the correct form body, put each primitive value in `additionalData` under `StripeFormSerializationWriter.primitiveValueKey` (`'#value'`):
 
 ```dart
 import 'package:stripe_api_client/stripe_api_client.dart';
@@ -96,7 +106,7 @@ final paymentMethodTypes = SubscriptionsPostRequestBodyPaymentSettingsPaymentMet
   ];
 ```
 
-The form writer will then emit `payment_method_types[0]=bancontact`, `payment_method_types[1]=card`, etc. You can wrap this in a small helper (e.g. a function that builds the Member1 list from a `List<String>`) to keep call sites simple.
+The form writer then emits `payment_method_types[0]=bancontact`, `payment_method_types[1]=card`, etc. You can wrap this in a small helper (e.g. a function that builds the Member1 list from a `List<String>`) to keep call sites simple.
 
 ## Development
 
@@ -156,7 +166,8 @@ stripe_api_client/
 │   └── README.md
 ├── lib/
 │   ├── src/           # Custom (non-generated) code
-│   │   └── stripe_form_serialization_writer.dart
+│   │   ├── stripe_form_serialization_writer.dart
+│   │   └── stripe_request_adapter.dart
 │   ├── stripe_client.dart
 │   ├── stripe_client_factory.dart  # createStripeClient()
 │   ├── stripe_api_client.dart     # Main export
