@@ -80,7 +80,9 @@ Aside from the generated API client, this package includes **two custom pieces**
 #### 2. Query parameters
 
 - **File:** `lib/src/stripe_request_adapter.dart` (`StripeRequestAdapter`).
-- **Purpose:** Stripe expects array query params with **bracket notation** (e.g. `expand[]=discounts` instead of `expand=discounts`). The adapter updates `RequestInformation.queryParameters` before each request so that any parameter whose value is a list uses a key with a `[]` suffix, producing `key[]=value` in the URI as Stripe requires.
+- **Purpose:** Stripe expects array query params with **bracket notation** (e.g. `expand[]=discounts` instead of `expand=discounts`). The adapter updates `RequestInformation.queryParameters` and `RequestInformation.urlTemplate` before each request so that any parameter whose value is a list uses a key with a `[]` suffix, producing `key[]=value` in the URI as Stripe requires.
+
+**Using `expand`:** Stripe supports an `expand[]` query parameter to inline related objects (e.g. `expand[]=data.customer`). The adapter correctly serializes it. Be aware that the **generated response types are typically not built for the expanded case**: Stripe returns full objects where the model may expect only IDs, so the parsed response shape may not match the type. Prefer using the API without expand when possible, or handle expanded fields via `additionalData` or custom parsing.
 
 `createStripeClient` uses `StripeRequestAdapter` with `StripeFormSerializationWriterFactory`, so form and query behavior are correct by default.
 
