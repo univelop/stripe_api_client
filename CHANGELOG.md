@@ -1,5 +1,15 @@
 # Changelog
 
+
+## [0.7.0] - 2026-05-20
+
+### Added
+- support empty string values for unsetting Stripe fields
+- add sendRaw for raw response without deserialization
+
+### Fixed
+- add http as direct dependency for publish validation
+
 ## [0.6.1] - 2026-02-02
 
 ### Fixed
