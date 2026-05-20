@@ -110,6 +110,29 @@ final paymentMethodTypes = SubscriptionsPostRequestBodyPaymentSettingsPaymentMet
 
 The form writer then emits `payment_method_types[0]=bancontact`, `payment_method_types[1]=card`, etc. You can wrap this in a small helper (e.g. a function that builds the Member1 list from a `List<String>`) to keep call sites simple.
 
+#### Unsetting fields (empty string values)
+
+Stripe uses empty values to **unset** fields (e.g. `invoice_settings[custom_fields]=` clears the custom fields array). The base Kiota `FormSerializationWriter` silently skips empty string values, so this package provides a sentinel constant `StripeFormSerializationWriter.emptyValue` (`'#empty'`). The sentinel passes through the serializer as a normal non-empty value, and `StripeRequestAdapter` replaces it with an empty value before sending the request.
+
+For composed types (anyOf string / array), set the `string_` field to `emptyValue`:
+
+```dart
+import 'package:stripe_api_client/stripe_api_client.dart';
+import 'package:stripe_api_client/v1/customers/item/with_customer_post_request_body.dart';
+import 'package:stripe_api_client/v1/customers/item/with_customer_post_request_body_invoice_settings.dart';
+import 'package:stripe_api_client/v1/customers/item/with_customer_post_request_body_invoice_settings_custom_fields.dart';
+
+// Clear the custom_fields on a customer's invoice settings
+final customFields = WithCustomerPostRequestBodyInvoiceSettingsCustomFields()
+  ..string_ = StripeFormSerializationWriter.emptyValue;
+final body = WithCustomerPostRequestBody()
+  ..invoiceSettings = (WithCustomerPostRequestBodyInvoiceSettings()
+    ..customFields = customFields);
+await stripeClient.customers.byCustomer(customerId).postAsync(body);
+```
+
+This produces `invoice_settings[custom_fields]=` in the form body, which tells Stripe to clear the field.
+
 ## Development
 
 ### Prerequisites

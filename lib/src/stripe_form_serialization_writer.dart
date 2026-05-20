@@ -1,6 +1,5 @@
 import 'package:collection/collection.dart';
 import 'package:microsoft_kiota_abstractions/microsoft_kiota_abstractions.dart';
-import 'package:microsoft_kiota_bundle/microsoft_kiota_bundle.dart' show Parsable;
 import 'package:microsoft_kiota_serialization_form/microsoft_kiota_serialization_form.dart';
 
 /// Form-url-encoded serialization writer that uses bracket notation for nested
@@ -30,6 +29,22 @@ import 'package:microsoft_kiota_serialization_form/microsoft_kiota_serialization
 /// This subclasses [FormSerializationWriter] to add key-prefix support until
 /// equivalent behavior is available upstream (see kiota-dart).
 ///
+/// ## Unsetting fields (empty string values)
+///
+/// Stripe uses empty values to **unset** fields, e.g.
+/// `invoice_settings[custom_fields]=` clears the custom fields array.
+/// The base [FormSerializationWriter] skips empty values. To work around this,
+/// use [emptyValue] as a sentinel — the serializer writes it as a normal
+/// non-empty value, and [StripeRequestAdapter] replaces the URL-encoded
+/// sentinel with an empty value before sending the request.
+///
+/// For composed types (anyOf string / array), set `string_` to [emptyValue]:
+///
+/// ```dart
+/// final customFields = WithCustomerPostRequestBodyInvoiceSettingsCustomFields()
+///   ..string_ = StripeFormSerializationWriter.emptyValue;
+/// ```
+///
 /// ## Array-of-primitive wrappers (e.g. payment_method_types)
 ///
 /// The OpenAPI spec uses `anyOf: [array of string enum, string]`, which the
@@ -54,6 +69,21 @@ class StripeFormSerializationWriter extends FormSerializationWriter {
   /// primitive value when the generated type is an array-of-primitive wrapper
   /// (e.g. payment_method_types). The writer will emit `key[0]=value`, etc.
   static const String primitiveValueKey = '#value';
+
+  /// Sentinel value that serializes as an empty string (`key=`) after
+  /// [StripeRequestAdapter] replaces the URL-encoded form.
+  ///
+  /// Stripe uses empty values to unset fields. The base
+  /// [FormSerializationWriter] skips truly empty strings, so pass this
+  /// sentinel instead. It is written as a normal non-empty value by the
+  /// serializer, then [StripeRequestAdapter] replaces
+  /// `=[encodedEmptyValue]` with `=` before sending.
+  static const String emptyValue = '#empty';
+
+  /// The URL-encoded form of [emptyValue] used by [StripeRequestAdapter]
+  /// to find and replace sentinel values in the request body.
+  static final String encodedEmptyValue =
+      Uri.encodeQueryComponent(emptyValue);
 
   /// Stack of key segments for nested objects/arrays; used by [_makeKey].
   final List<String> _keyPrefixStack = [];
@@ -86,7 +116,9 @@ class StripeFormSerializationWriter extends FormSerializationWriter {
   @override
   void writeStringValue(String? key, String? value) {
     // Apply current prefix stack so nested keys become e.g. address[city].
-    super.writeStringValue(_makeKey(key), value);
+    // When a composed type calls writeStringValue(null, value), fall back to
+    // the current stack path so the parent key is used (e.g. custom_fields).
+    super.writeStringValue(_makeKey(key) ?? _currentKey, value);
   }
 
   @override

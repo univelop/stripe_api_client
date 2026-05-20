@@ -1,7 +1,12 @@
+import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 import 'package:microsoft_kiota_bundle/microsoft_kiota_bundle.dart';
 
-/// Request adapter that formats query parameters for the Stripe API.
+import 'stripe_form_serialization_writer.dart';
+
+/// Request adapter that formats query parameters and request bodies for the
+/// Stripe API.
 ///
 /// Stripe expects array query parameters with bracket notation, e.g.
 /// `expand[]=discounts` instead of `expand=discounts`. This adapter
@@ -11,6 +16,9 @@ import 'package:microsoft_kiota_bundle/microsoft_kiota_bundle.dart';
 /// - Updates [RequestInformation.urlTemplate] so that the same key is
 ///   replaced with the bracket form (e.g. `expand` → `expand[]`), ensuring
 ///   the final request URI is built correctly.
+/// - Replaces the [StripeFormSerializationWriter.emptyValue] sentinel in the
+///   request body with truly empty values (`key=`), which Stripe uses to
+///   unset fields.
 class StripeRequestAdapter extends DefaultRequestAdapter {
   StripeRequestAdapter({
     required super.authProvider,
@@ -37,6 +45,31 @@ class StripeRequestAdapter extends DefaultRequestAdapter {
     }
   }
 
+  /// Replaces the [StripeFormSerializationWriter.emptyValue] sentinel in the
+  /// request body with truly empty values (`key=`).
+  ///
+  /// Stripe uses empty form values to unset fields (e.g.
+  /// `invoice_settings[custom_fields]=`). The base Kiota form serializer
+  /// skips empty strings, so the sentinel is written as a non-empty
+  /// placeholder and replaced here before the request is sent.
+  void _applyStripeEmptyValues(RequestInformation requestInfo) {
+    final content = requestInfo.content;
+    if (content == null || content.isEmpty) return;
+
+    final body = utf8.decode(content);
+    final sentinel = '=${StripeFormSerializationWriter.encodedEmptyValue}';
+    if (!body.contains(sentinel)) return;
+
+    requestInfo.content =
+        Uint8List.fromList(utf8.encode(body.replaceAll(sentinel, '=')));
+  }
+
+  /// Applies all Stripe-specific request fixups.
+  void _applyStripeFixups(RequestInformation requestInfo) {
+    _applyStripeQueryParams(requestInfo);
+    _applyStripeEmptyValues(requestInfo);
+  }
+
   /// Sends [requestInfo] and returns the raw [http.StreamedResponse] without
   /// deserializing the body. Stripe query params and authentication are applied.
   ///
@@ -57,7 +90,7 @@ class StripeRequestAdapter extends DefaultRequestAdapter {
     RequestInformation requestInfo, {
     http.Client? client,
   }) async {
-    _applyStripeQueryParams(requestInfo);
+    _applyStripeFixups(requestInfo);
     requestInfo.pathParameters['baseurl'] = baseUrl;
     final request = await convertToNativeRequest<http.Request>(requestInfo);
     if (request == null) {
@@ -68,7 +101,7 @@ class StripeRequestAdapter extends DefaultRequestAdapter {
 
   @override
   Future<T?> convertToNativeRequest<T>(RequestInformation requestInfo) async {
-    _applyStripeQueryParams(requestInfo);
+    _applyStripeFixups(requestInfo);
     return super.convertToNativeRequest<T>(requestInfo);
   }
 
@@ -78,7 +111,7 @@ class StripeRequestAdapter extends DefaultRequestAdapter {
     ParsableFactory<ModelType> factory, [
     ErrorMappings? errorMapping,
   ]) async {
-    _applyStripeQueryParams(requestInfo);
+    _applyStripeFixups(requestInfo);
     return super.send(requestInfo, factory, errorMapping);
   }
 
@@ -88,7 +121,7 @@ class StripeRequestAdapter extends DefaultRequestAdapter {
     ParsableFactory<ModelType> factory, [
     ErrorMappings? errorMapping,
   ]) async {
-    _applyStripeQueryParams(requestInfo);
+    _applyStripeFixups(requestInfo);
     return super.sendCollection(requestInfo, factory, errorMapping);
   }
 
@@ -97,7 +130,7 @@ class StripeRequestAdapter extends DefaultRequestAdapter {
     RequestInformation requestInfo, [
     ErrorMappings? errorMapping,
   ]) async {
-    _applyStripeQueryParams(requestInfo);
+    _applyStripeFixups(requestInfo);
     return super.sendNoContent(requestInfo, errorMapping);
   }
 
@@ -106,7 +139,7 @@ class StripeRequestAdapter extends DefaultRequestAdapter {
     RequestInformation requestInfo, [
     ErrorMappings? errorMapping,
   ]) async {
-    _applyStripeQueryParams(requestInfo);
+    _applyStripeFixups(requestInfo);
     return super.sendPrimitive<ModelType>(requestInfo, errorMapping);
   }
 
@@ -115,7 +148,7 @@ class StripeRequestAdapter extends DefaultRequestAdapter {
     RequestInformation requestInfo, [
     ErrorMappings? errorMapping,
   ]) async {
-    _applyStripeQueryParams(requestInfo);
+    _applyStripeFixups(requestInfo);
     return super.sendPrimitiveCollection<ModelType>(requestInfo, errorMapping);
   }
 }
